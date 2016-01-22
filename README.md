@@ -9,7 +9,7 @@ Exchange Powershell / Cli Email Client (like pine, but powershell based). And al
 ## Scripts 
 
 ## License and Authors 
-Author:: Josephe Beaudry
+Author:: Josephe Beaudry Justino Garcia Nicholas Hansen
 
 
 
