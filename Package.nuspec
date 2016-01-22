@@ -3,8 +3,8 @@
   <metadata>
     <id>poshlook</id>
     <version>0.0.1</version>
-    <authors>joe beaudry</authors>
-    <owners>joe beaudry</owners>
+    <authors>Josephe Beaudry Justino Garcia Nicholas Hansen</authors>
+    <owners>Josephe Beaudry Justino Garcia Nicholas Hansen</owners>
     <projectUrl>https://github.com/itadder/PoshLook</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Exchange Powershell / Cli Email Client (like pine, but powershell based). And also to be used in automation scripts. Little by little start adding other Exchange features, like Calendar, Task/Reminders, and Contact list. CLI client, for those who spend all day in powershell and Conemu.</description>
