@@ -31,7 +31,7 @@ Function Add-Menu{
     Pop-Location
 
     if ($InputFile.Menu[0].Backgroundcolor -ne ""){$host.UI.RawUI.BackgroundColor = $InputFile.Menu[0].Backgroundcolor}
-    else {$host.UI.RawUI.BackgroundColor = "DarkMagenta"}
+    else {$host.UI.RawUI.BackgroundColor = $DefaultMenuColor}
     cls
 
     foreach ($i in 0..($InputFile.Objects.Count-1)){
