@@ -3,9 +3,47 @@
 		{"Backgroundcolor":""}
 	],
 	"Objects":[
-		{"Index":"1", "Text":"Mail", "x":"1", "y":"1"},
-		{"Index":"2", "Text":"Calender", "x":"1", "y":"3", "Backgroundcolor":"white", "textcolor":"black"},
-		{"Index":"3", "Text":"Tasks", "x":"1", "y":"5", "Backgroundcolor":"black", "textcolor":"white"},
-		{"Index":"4", "Text":"Contacts", "x":"1", "y":"7"}
+		{
+			"Index":"1",
+			"Text":"Mail",
+			"x":"10",
+			"xisrelative":"false",
+			"y":"20",
+			"yisrelative":"false",
+			"Alignment":"left",
+			"Backgroundcolor":"green"
+		},
+		{
+			"Index":"2", 
+			"Text":"Calender",
+			"x":"40",
+			"xisrelative":"true",
+			"y":"40",
+			"yisrelative":"true",
+			"Alignment":"center",
+			"Backgroundcolor":"white",
+			"textcolor":"black"
+		},
+		{
+			"Index":"3",
+			"Text":"Tasks",
+			"x":"60",
+			"xisrelative":"true",
+			"y":"60",
+			"yisrelative":"true",
+			"Alignment":"center",
+			"Backgroundcolor":"black",
+			"textcolor":"white"
+		},
+		{
+			"Index":"4",
+			"Text":"Contacts", 
+			"x":"90",
+			"xisrelative":"true",
+			"y":"80",
+			"yisrelative":"true",
+			"Alignment":"right",
+			"Textcolor":"red"
+		}
 	]
 }
