@@ -18,9 +18,13 @@
 Function Add-Menu{
     param(
         #Filepath to the JSON File.
-        [string]$filepath
+        [string]$filepath,
+        
+        #HashTable input if you want have dynamic text in the JSON
+        [Parameter(Mandatory=$true)]
+        $HashTable
     )
-
+    
     #Variables
     $DefaultMenuColor = "DarkMagenta" #Our menus default background color
     $IncorrectJSON = "relativity in JSON is incorrect, must be true or false."
@@ -60,26 +64,42 @@ Function Add-Menu{
             }
         } elseif ($InputFile.Objects[$i-1].Alignment -eq "right"){
             if ($InputFile.Objects[$i-1].xisrelative = "true"){
-                $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-$InputFile.Objects[$i-1].Text.Length
+                if ($InputFile.Objects[$i-1].IsVariable){
+                    $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-($HashTable.($InputFile.Objects[$i-1].Text)).Length
+                } else {
+                    $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-$InputFile.Objects[$i-1].Text.Length
+                }
             } elseif ($InputFile.Objects[$i-1].yisrelative = "false") {
-                $HashArguments.x = $InputFile.Objects[$i-1].x-$InputFile.Objects[$i-1].Text.Length
+                if ($InputFile.Objects[$i-1].IsVariable){
+                    $HashArguments.x = $InputFile.Objects[$i-1].x-($HashTable.($InputFile.Objects[$i-1].Text)).Length
+                } else {
+                    $HashArguments.x = $InputFile.Objects[$i-1].x-$InputFile.Objects[$i-1].Text.Length
+                }
             } else {
                 throw $IncorrectJSON
             }
         }
         elseif ($InputFile.Objects[$i-1].Alignment -eq "center"){
             if ($InputFile.Objects[$i-1].xisrelative = "true"){
-                $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-(($InputFile.Objects[$i-1].Text.Length)/2)
-            } elseif ($InputFile.Objects[$i-1].xisrelative = "false4"){
-                $HashArguments.x = $InputFile.Objects[$i-1].x-($InputFile.Objects[$i-1].Text.Length)/2
+                if ($InputFile.Objects[$i-1].IsVariable){
+                    $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-(($HashTable.($InputFile.Objects[$i-1].Text)).Length/2)
+                } else {
+                    $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-(($InputFile.Objects[$i-1].Text.Length)/2)
+                }
+            } elseif ($InputFile.Objects[$i-1].xisrelative = "false"){
+                if ($InputFile.Objects[$i-1].IsVariable){
+                    $HashArguments.x = $InputFile.Objects[$i-1].x-(($HashTable.($InputFile.Objects[$i-1].Text)).Length/2)
+                } else {
+                    $HashArguments.x = $InputFile.Objects[$i-1].x-($InputFile.Objects[$i-1].Text.Length)/2
+                }
             } else {
                 throw $IncorrectJSON
             }
         } else {
             throw "Alignment in JSON is incorrect: must be left, right or center"
         }
-        if ($InputFile.Objectsp[$i-1].IsVariable){
-            $HashArguments.text = Get-Variable -Name $InputFile.Objects[$i-1].Text -ValueOnly 
+        if ($InputFile.Objects[$i-1].IsVariable){
+            $HashArguments.text = $HashTable.($InputFile.Objects[$i-1].Text)
         } else {
             $HashArguments.text = $InputFile.Objects[$i-1].Text
         }
