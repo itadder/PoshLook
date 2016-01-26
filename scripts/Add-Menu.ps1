@@ -41,13 +41,6 @@ Function Add-Menu{
 
     foreach ($i in 0..($InputFile.Objects.Count-1)){
         $HashArguments = @{}
-        if ($InputFile.Objects[$i-1].xisrelative = "true"){
-            $HashArguments.x = $ch/100*$InputFile.Objects[$i-1].x
-        } elseif ($InputFile.Objects[$i-1].xisrelative = "false") {
-            $HashArguments.x = $InputFile.Objects[$i-1].x
-        } else{
-            throw $IncorrectJSON
-        }
         
         if ($InputFile.Objects[$i-1].yisrelative = "true"){
             $HashArguments.y = $ch/100*$InputFile.Objects[$i-1].y
@@ -85,8 +78,11 @@ Function Add-Menu{
         } else {
             throw "Alignment in JSON is incorrect: must be left, right or center"
         }
-
-        $HashArguments.text = $InputFile.Objects[$i-1].Text
+        if ($InputFile.Objectsp[$i-1].IsVariable){
+            $HashArguments.text = Get-Variable -Name $InputFile.Objects[$i-1].Text -ValueOnly 
+        } else {
+            $HashArguments.text = $InputFile.Objects[$i-1].Text
+        }
         if ($InputFile.Objects[$i-1].Backgroundcolor){ $HashArguments.Backgroundcolor = $InputFile.Objects[$i-1].Backgroundcolor }
         if ($InputFile.Objects[$i-1].Textcolor){ $HashArguments.Textcolor = $InputFile.Objects[$i-1].Textcolor }
         Add-MenuItem @HashArguments
