@@ -17,10 +17,13 @@ function Get-Mail(
 Add-Type -Path "$psScriptRoot\dlls\ImapX.dll"
 
 $client = New-Object Imapx.ImapClient("$provider", 993,$true)
-$credentials = New-Object ImapX.Authentication.
+$credentials = New-Object ImapX.Authentication.PlainCredentials("","")
 
 $client.connect()
-$client.folders.
+$client.login($credentials)
+$client.folders.$location.search(criteria)
+$client.disconnect()
+Remove-Variable -Name client
 }
 
 
