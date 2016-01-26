@@ -21,7 +21,7 @@ Function Add-Menu{
         [string]$filepath,
         
         #HashTable input if you want have dynamic text in the JSON
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         $HashTable
     )
     
