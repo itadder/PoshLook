@@ -1,0 +1,51 @@
+{
+	"Menu":[
+		{"Backgroundcolor":""}
+	],
+	"Objects":[
+		{
+            "Index":"1",
+			"Text":"Title",
+            "IsVariable":"true",
+            "IsSelectable":"false",
+			"x":"50",
+			"xisrelative":"true",
+			"y":"10",
+			"yisrelative":"true",
+			"XAlignment":"center"
+   		},
+        {
+            "Index":"2",
+            "Text":"View mail",
+			"x":"50",
+			"xisrelative":"true",
+			"y":"40",
+			"yisrelative":"true",
+			"XAlignment":"center",
+            "BackgroundColor":"white",
+            "TextColor":"black"
+        },
+        {
+            "Index":"3",
+            "Text":"New Mail",
+			"x":"50",
+			"xisrelative":"true",
+			"y":"50",
+			"yisrelative":"true",
+			"XAlignment":"center",
+            "BackgroundColor":"white",
+            "TextColor":"black"
+        },
+        {
+            "Index":"4",
+            "Text":"add/edit account settings",
+			"x":"50",
+			"xisrelative":"true",
+			"y":"60",
+			"yisrelative":"true",
+			"XAlignment":"center",
+            "BackgroundColor":"white",
+            "TextColor":"black"
+        }
+	]
+}

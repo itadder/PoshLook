@@ -1,0 +1,18 @@
+{
+	"Menu":[
+		{"Backgroundcolor":""}
+	],
+	"Objects":[
+        {
+			"Index":"1",
+			"Text":"Return to main menu",
+			"x":"2",
+			"xisrelative":"false",
+			"y":"2",
+			"yisrelative":"false",
+			"Alignment":"left",
+			"Backgroundcolor":"black",
+            "Textcolor":"red"
+		}
+	]
+}
