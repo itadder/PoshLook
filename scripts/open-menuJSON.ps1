@@ -15,7 +15,7 @@
 .LINK
    Github project: https://github.com/poshlook/PoshLook
 #>
-Function Add-Menu{
+Function Open-MenuJSON{
     param(
         #Filepath to the JSON File.
         [string]$filepath,
@@ -49,9 +49,9 @@ Function Add-Menu{
         $HashArguments = @{}
         
         #region Y allignment
-        if ($InputFile.Objects[$i-1].yisrelative = "true"){ #Sets the Y coordinates. Can be relative or fixed. Warning: Relative menu items can overlap eachother
+        if ($InputFile.Objects[$i-1].yisrelative){ #Sets the Y coordinates. Can be relative or fixed. Warning: Relative menu items can overlap eachother
             $HashArguments.y = $ch/100*$InputFile.Objects[$i-1].y
-        } elseif ($InputFile.Objects[$i-1].yisrelative = "false") {
+        } elseif (!$InputFile.Objects[$i-1].yisrelative) {
             $HashArguments.y = $InputFile.Objects[$i-1].y
         } else{
             throw $IncorrectJSON
@@ -60,21 +60,21 @@ Function Add-Menu{
         
         #region X allignment
         if ($InputFile.Objects[$i-1].XAlignment -eq "left"){
-            if ($InputFile.Objects[$i-1].xisrelative = "true"){
+            if ($InputFile.Objects[$i-1].xisrelative){
                 $HashArguments.x = $cw/100*$InputFile.Objects[$i-1].x
-            } elseif ($InputFile.Objects[$i-1].xisrelative = "false") {
+            } elseif (!$InputFile.Objects[$i-1].xisrelative) {
                 $HashArguments.x = $InputFile.Objects[$i-1].x
-            } else{
+            } else {
                 throw $IncorrectJSON
             }
         } elseif ($InputFile.Objects[$i-1].XAlignment -eq "right"){
-            if ($InputFile.Objects[$i-1].xisrelative = "true"){
+            if ($InputFile.Objects[$i-1].xisrelative){
                 if ($InputFile.Objects[$i-1].IsVariable){
                     $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-($HashTable.($InputFile.Objects[$i-1].Text)).Length
                 } else {
                     $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-$InputFile.Objects[$i-1].Text.Length
                 }
-            } elseif ($InputFile.Objects[$i-1].yisrelative = "false") {
+            } elseif (!$InputFile.Objects[$i-1].yisrelative) {
                 if ($InputFile.Objects[$i-1].IsVariable){
                     $HashArguments.x = $InputFile.Objects[$i-1].x-($HashTable.($InputFile.Objects[$i-1].Text)).Length
                 } else {
@@ -85,13 +85,13 @@ Function Add-Menu{
             }
         }
         elseif ($InputFile.Objects[$i-1].XAlignment -eq "center"){
-            if ($InputFile.Objects[$i-1].xisrelative = "true"){
+            if ($InputFile.Objects[$i-1].xisrelative){
                 if ($InputFile.Objects[$i-1].IsVariable){
                     $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-(($HashTable.($InputFile.Objects[$i-1].Text)).Length/2)
                 } else {
                     $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-(($InputFile.Objects[$i-1].Text.Length)/2)
                 }
-            } elseif ($InputFile.Objects[$i-1].xisrelative = "false"){
+            } elseif (!$InputFile.Objects[$i-1].xisrelative){
                 if ($InputFile.Objects[$i-1].IsVariable){
                     $HashArguments.x = $InputFile.Objects[$i-1].x-(($HashTable.($InputFile.Objects[$i-1].Text)).Length/2)
                 } else {
@@ -116,26 +116,21 @@ Function Add-Menu{
         $HashArguments.y = [System.Math]::Round($HashArguments.y)
 
         $CollectionHashArguments.Add($InputFile.Objects[$i-1].Index, $HashArguments)
-        #Add-MenuItem @HashArguments
     }
 
     #This may take a little explaining. What I'm doing here is reading out every effective x Value and writing it to an array.
     #If the number already exists, it increments it in the hashtable and then adds it to the array.
     #This prevents menu items being overridden by overlapping items
     #$CollectionHashArguments = ($CollectionHashArguments.GetEnumerator() | Sort-Object Name)
-    $CollectionHashArguments.GetType() | Out-File -FilePath D:\temp\test.txt -Append
-    $CollectionHashArguments | Out-File -FilePath D:\temp\test.txt -Append
     $yCoordinates = @()
     foreach ($i in ($CollectionHashArguments.Keys | Sort-Object)) {
         while ( $yCoordinates.Contains($CollectionHashArguments.Item($i).item("y")) ) {
             $CollectionHashArguments.item($i).item("y") += 1
         }
-        $yCoordinates += $CollectionHashArguments.Item($i).item("y")
-        $PassValue = @{} #I could simplify the next 4 lines but I want to make it easily understandable
-        $PassValue = $CollectionHashArguments.Item($i)
-        $PassValue | Out-File -FilePath D:\temp\test.txt -Append
-        Add-MenuItem @PassValue
+        #$yCoordinates += $CollectionHashArguments.Item($i).item("y")
+        #$PassValue = @{} #I could simplify the next 4 lines but I want to make it easily understandable
+        #$PassValue = $CollectionHashArguments.Item($i)
+        #Add-MenuItem @PassValue
     }
-    $yCoordinates | Out-File -FilePath D:\temp\test.txt -Append
-    return $InputFile
+    return $CollectionHashArguments
 }

@@ -5,22 +5,22 @@
 	"Objects":[
 		{
 			"Index":"1",
-            "IsSelectable":"false",
+            "IsSelectable":false,
 			"Text":"InputText",
-            "IsVariable":"true",
+            "IsVariable":true,
 			"x":"50",
-			"xisrelative":"true",
+			"xisrelative":true,
 			"y":"20",
-			"yisrelative":"true",
+			"yisrelative":true,
 			"Alignment":"center"
 		},
 		{
 			"Index":"2",
 			"Text":"Yes",
 			"x":"40",
-			"xisrelative":"true",
+			"xisrelative":true,
 			"y":"60",
-			"yisrelative":"true",
+			"yisrelative":true,
 			"Alignment":"right",
 			"textcolor":"green"
 		},
@@ -28,9 +28,9 @@
 			"Index":"3",
 			"Text":"No",
 			"x":"60",
-			"xisrelative":"true",
+			"xisrelative":true,
 			"y":"60",
-			"yisrelative":"true",
+			"yisrelative":true,
 			"Alignment":"left",
 			"textcolor":"red"
 		}

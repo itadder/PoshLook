@@ -7,9 +7,9 @@
 			"Index":"1",
 			"Text":"Return to main menu",
 			"x":"2",
-			"xisrelative":"false",
+			"xisrelative":false,
 			"y":"2",
-			"yisrelative":"false",
+			"yisrelative":false,
 			"Alignment":"left",
 			"Backgroundcolor":"black",
             "Textcolor":"red"
