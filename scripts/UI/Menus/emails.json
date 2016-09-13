@@ -4,11 +4,11 @@
 	],
 	"Objects":[
         {
-			"Index":"1",
+			"Index":1,
 			"Text":"Return to main menu",
-			"x":"2",
+			"x":2,
 			"xisrelative":false,
-			"y":"2",
+			"y":2,
 			"yisrelative":false,
 			"Alignment":"left",
 			"Backgroundcolor":"black",

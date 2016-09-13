@@ -4,32 +4,32 @@
 	],
 	"Objects":[
 		{
-			"Index":"1",
+			"Index":1,
             "IsSelectable":false,
 			"Text":"InputText",
             "IsVariable":true,
-			"x":"50",
+			"x":50,
 			"xisrelative":true,
-			"y":"20",
+			"y":20,
 			"yisrelative":true,
 			"Alignment":"center"
 		},
 		{
-			"Index":"2",
+			"Index":2,
 			"Text":"Yes",
-			"x":"40",
+			"x":40,
 			"xisrelative":true,
-			"y":"60",
+			"y":60,
 			"yisrelative":true,
 			"Alignment":"right",
 			"textcolor":"green"
 		},
 		{
-			"Index":"3",
+			"Index":3,
 			"Text":"No",
-			"x":"60",
+			"x":60,
 			"xisrelative":true,
-			"y":"60",
+			"y":60,
 			"yisrelative":true,
 			"Alignment":"left",
 			"textcolor":"red"
