@@ -1,16 +1,17 @@
 <#
 .Synopsis
-   Imports a JSON file that contains the layout for the menu
+   Imports a JSON file that contains the layout for a dynamic and fix menu
 .DESCRIPTION
    Imports a JSON file that contains the layout for the Menu and calls Add-MenuItem for each object within the json file under "Objects".
    Look at example.json for formating of JSON files.
+   This can take a mix of static positioned items and dynamic positioned items.
    It returns the imported JSON file so it can be processed by things like menu navigation and submenus.
 .EXAMPLE
-   Add-MenuItem -filepath example.json
+   Add-Menu -filepath dynamicexample.json
    Draws a menu based on example.json
 .EXAMPLE
-   Add-Menu -filepath C:\example\customlayout\custommenu.json
-   Draws a menu based on C:\example\customlayouy\custommenu.json
+   Add-Menu -filepath C:\example\customlayout\customdynamicmenu.json
+   Draws a menu based on C:\example\customlayouy\customdynamicmenu.json
 .LINK
    Github project: https://github.com/poshlook/PoshLook
 #>
@@ -22,6 +23,7 @@ Function Add-Menu{
 
     #Variables
     $DefaultMenuColor = "DarkMagenta" #Our menus default background color
+    $IncorrectJSON = "relativity in JSON is incorrect, must be true or false."
     #End Variables
 
     Push-Location
@@ -34,8 +36,53 @@ Function Add-Menu{
     else {$host.UI.RawUI.BackgroundColor = $DefaultMenuColor}
     cls
 
+    $ch = [console]::WindowHeight
+    $cw = [console]::WindowWidth
+
     foreach ($i in 0..($InputFile.Objects.Count-1)){
-        $HashArguments = @{text = $InputFile.Objects[$i-1].Text; x = $InputFile.Objects[$i-1].x; y = $InputFile.Objects[$i-1].y}
+        $HashArguments = @{}
+        
+        if ($InputFile.Objects[$i-1].yisrelative = "true"){
+            $HashArguments.y = $ch/100*$InputFile.Objects[$i-1].y
+        } elseif ($InputFile.Objects[$i-1].yisrelative = "false") {
+            $HashArguments.y = $InputFile.Objects[$i-1].y
+        } else{
+            throw $IncorrectJSON
+        }
+        
+        if ($InputFile.Objects[$i-1].Alignment -eq "left"){
+            if ($InputFile.Objects[$i-1].xisrelative = "true"){
+                $HashArguments.x = $cw/100*$InputFile.Objects[$i-1].x
+            } elseif ($InputFile.Objects[$i-1].xisrelative = "false") {
+                $HashArguments.x = $InputFile.Objects[$i-1].x
+            } else{
+                throw $IncorrectJSON
+            }
+        } elseif ($InputFile.Objects[$i-1].Alignment -eq "right"){
+            if ($InputFile.Objects[$i-1].xisrelative = "true"){
+                $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-$InputFile.Objects[$i-1].Text.Length
+            } elseif ($InputFile.Objects[$i-1].yisrelative = "false") {
+                $HashArguments.x = $InputFile.Objects[$i-1].x-$InputFile.Objects[$i-1].Text.Length
+            } else {
+                throw $IncorrectJSON
+            }
+        }
+        elseif ($InputFile.Objects[$i-1].Alignment -eq "center"){
+            if ($InputFile.Objects[$i-1].xisrelative = "true"){
+                $HashArguments.x = ($cw/100*$InputFile.Objects[$i-1].x)-(($InputFile.Objects[$i-1].Text.Length)/2)
+            } elseif ($InputFile.Objects[$i-1].xisrelative = "false4"){
+                $HashArguments.x = $InputFile.Objects[$i-1].x-($InputFile.Objects[$i-1].Text.Length)/2
+            } else {
+                throw $IncorrectJSON
+            }
+        } else {
+            throw "Alignment in JSON is incorrect: must be left, right or center"
+        }
+        if ($InputFile.Objectsp[$i-1].IsVariable){
+            $HashArguments.text = Get-Variable -Name $InputFile.Objects[$i-1].Text -ValueOnly 
+        } else {
+            $HashArguments.text = $InputFile.Objects[$i-1].Text
+        }
         if ($InputFile.Objects[$i-1].Backgroundcolor){ $HashArguments.Backgroundcolor = $InputFile.Objects[$i-1].Backgroundcolor }
         if ($InputFile.Objects[$i-1].Textcolor){ $HashArguments.Textcolor = $InputFile.Objects[$i-1].Textcolor }
         Add-MenuItem @HashArguments
