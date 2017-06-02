@@ -7,6 +7,8 @@ Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\PowerShell\1\ShellIds" -Name ConsoleP
 clear
 $creds =  Get-Credential 
 $mail = $creds.GetNetworkCredential().username
+$domainname = read-host -Prompt "Enter Domain Name: "
+
 $password = $creds.GetNetworkCredential().password
 
 #This would of been great idea, but it not secure.
@@ -24,7 +26,8 @@ $dllpath = "C:\Program Files\Microsoft\Exchange\Web Services\2.2\Microsoft.Excha
 $service = new-object Microsoft.Exchange.WebServices.Data.ExchangeService 
 
 #These are your O365 credentials
-$Service.Credentials = New-Object Microsoft.Exchange.WebServices.Data.WebCredentials($mail,$password)
+#$Service.Credentials = New-Object Microsoft.Exchange.WebServices.Data.WebCredentials($mail,$password)
+$Service.Credentials = New-Object Microsoft.Exchange.WebServices.Data.WebCredentials($mail,$password,$domainname)
 
 # this TestUrlCallback is purely a security check
 $TestUrlCallback = {
