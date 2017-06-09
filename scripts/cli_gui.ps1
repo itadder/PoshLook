@@ -1,5 +1,5 @@
 #dll loading
-Import-Module "E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\CLRCLI\bin\Debug\CLRCLI.dll"
+Import-Module "location-to-CLRCLI.dll"
 #create root base
 $Root = [CLRCLI.Widgets.RootWindow]::new()
 
