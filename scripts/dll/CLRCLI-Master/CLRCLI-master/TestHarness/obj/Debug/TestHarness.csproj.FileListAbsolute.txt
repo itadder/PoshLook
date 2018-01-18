@@ -1,0 +1,7 @@
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\TestHarness\bin\Debug\TestHarness.exe
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\TestHarness\bin\Debug\TestHarness.pdb
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\TestHarness\bin\Debug\CLRCLI.dll
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\TestHarness\bin\Debug\CLRCLI.pdb
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\TestHarness\obj\Debug\TestHarness.csprojResolveAssemblyReference.cache
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\TestHarness\obj\Debug\TestHarness.exe
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\TestHarness\obj\Debug\TestHarness.pdb

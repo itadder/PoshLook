@@ -1,0 +1,5 @@
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\CLRCLI\bin\Debug\CLRCLI.dll
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\CLRCLI\bin\Debug\CLRCLI.pdb
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\CLRCLI\obj\Debug\CLRCLI.csprojResolveAssemblyReference.cache
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\CLRCLI\obj\Debug\CLRCLI.dll
+E:\Repos\Learning\Posh\CLRCLI-Master\CLRCLI-master\CLRCLI\obj\Debug\CLRCLI.pdb

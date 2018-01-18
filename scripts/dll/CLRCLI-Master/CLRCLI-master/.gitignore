@@ -2,9 +2,4 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/TestHarness/bin/Debug
-/TestHarness/obj/Debug
-/CLRCLI/obj/Debug
-*.dll
-*.pdb
 *.suo
