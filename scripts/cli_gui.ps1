@@ -1,5 +1,5 @@
 #dll loading
-Import-Module ".\dll\CLRCLI-Master\CLRCLI-master\CLRCLI\bin\Debug\CLRCLI.dll"
+Import-Module "$PSScriptRoot\dll\CLRCLI-Master\CLRCLI-master\CLRCLI\bin\Debug\CLRCLI.dll"
 #create root base
 $Root = [CLRCLI.Widgets.RootWindow]::new()
 #first Dialog box
