@@ -38,8 +38,21 @@ $list.height = 6
 $list.Border = [CLRCLI.BorderStyle]::Thin
 
 $selection = $list.SelectedItem
-$list.Keypress() -eq $true
+#$list.Keypress() -eq $true
+#[system.consolekeyinfo]::new('A',[System.ConsoleKey]::A,$false,$false,$false)
 $selection
+
+#Second Dialog box hidden from first
+
+$Dialog2 = [CLRCLI.Widgets.Dialog]::new($Root)
+$Dialog2.Text = $selection
+$Dialog2.Text = "view Inbox" 
+$Dialog2.Width = 150
+$Dialog2.Height = 32 
+$Dialog2.Top = 6
+$Dialog2.Left = 6
+$Dialog2.Border = [CLRCLI.BorderStyle]::Thick
+$Dialog2.Visible = $false
 
 $list2 = [CLRCLI.Widgets.ListBox]::new($Dialog2)
 $list2.top = 10
@@ -49,20 +62,8 @@ $list2.height = 6
 $list2.Border = [CLRCLI.BorderStyle]::Thin
 
 $selection2 = $list2.SelectedItem
-$list2.Keypress() -eq $true
+#$list2.Keypress() -eq $true
 $selection2
-#Second Dialog box hidden from first
-
-$Dialog2 = [CLRCLI.Widgets.Dialog]::new($Root)
-$Dialog2.Text = $selection
-$Dialog2.Text = "view Inbox" 
-$Dialog2.Width = 60 
-$Dialog2.Height = 32 
-$Dialog2.Top = 6
-$Dialog2.Left = 6
-$Dialog2.Border = [CLRCLI.BorderStyle]::Thick
-$Dialog2.Visible = $false
-
 
 # Add buttons
 
@@ -84,12 +85,29 @@ $Button4.Left = 5
 
 # Based on events button do something
 $Button4.Add_Clicked({$root.Detach()}) 
-$Button3.Add_Clicked( {$Dialog2.Hide(); $Dialog.Show()})
+#$Button3.Add_Clicked( {$Dialog2.Hide(); $Dialog.Show()})
 #$Button2.Add_Clicked( {$Dialog.Hide(); $Dialog2.Show()})
-$inbox = Get-EWSFolder -Path $selection  |  Get-EWSItem -Filter * 
-$listadd2 = $inbox | ForEach-Object {$list2.items.add($_)}
-$Button2.Add_Clicked({ $Dialog.Hide(); $Dialog2.Show()})
-$Button.Add_Clicked( { Get-OutlookMessage -ListAvailableFolders |  ForEach-Object { $list.items.add($_)}})
+    #$inbox = Get-EWSFolder -Path $selection  |  Get-EWSItem -Filter * 
+    #$listadd2 = $inbox | ForEach-Object {$list2.items.add($_)}
+$Button2.Add_Clicked({
+    #$List2Item = [system.collections.arraylist]::new()
+    $Dialog.Hide();
+    $Dialog2.Show();
+    (Get-EWSFolder -Path 'Inbox').FindItems(50).Subject | %{
+        $list2.Items.Add($_)
+    }
+})
+$Button.Add_Clicked( { 
+    $listitem = [system.collections.arraylist]::new()
+    (Get-EWSFolder -Path MsgFolderRoot).FindFolders([int]::MaxValue) | ?{$_.FolderClass -eq 'IPF.Note'} | %{
+        [void]$listitem.Add($_.DisplayName)
+        if ($_.ChildFolderCount){
+            [void]$listitem.Add("($($_.ChildFolderCount))")
+        }
+        $list.items.add($listitem -join ' ')
+        $listitem.Clear()
+    }
+} )
 #$Button.Add_Clicked( { Get-Process | select -ExpandProperty ProcessName | foreach { $list.items.add($_) }  })
 # run cli gui
 $Root.Run()

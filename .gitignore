@@ -1,2 +1,4 @@
 .swp
 .nupkg
+*.cache
+/.vs
