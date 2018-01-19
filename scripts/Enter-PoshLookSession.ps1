@@ -77,9 +77,11 @@ function Enter-PoshLookSession {
                             $listitem = [system.collections.arraylist]::new()
                             (Get-EWSFolder -Path MsgFolderRoot).FindFolders([int]::MaxValue) | ?{$_.FolderClass -eq 'IPF.Note'} | %{
                                 [void]$listitem.Add($_.DisplayName)
+                                <#
                                 if ($_.ChildFolderCount){
                                     [void]$listitem.Add("($($_.ChildFolderCount))")
                                 }
+                                #>
                                 $Dialogs[0].Lists[0].List.items.add($listitem -join ' ')
                                 $listitem.Clear()
                             }
@@ -98,7 +100,8 @@ function Enter-PoshLookSession {
                             #$List2Item = [system.collections.arraylist]::new()
                             $Dialogs[0].Dialog.Hide();
                             $Dialogs[1].Dialog.Show();
-                            (Get-EWSFolder -Path 'Inbox').FindItems(50).Subject | %{
+                            $selection = $Dialogs[0].Lists[0].List.SelectedItem
+                            (Get-EWSFolder -Path "MsgFolderRoot\$selection").FindItems(156).Subject | %{
                                 $Dialogs[1].Lists[0].List.Items.Add($_)
                             }
                         }
