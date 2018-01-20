@@ -13,7 +13,9 @@
         [Parameter()]
         $LeftPadding = 4,
         [Parameter()]
-        [ValidateSet('None','Thin','Thick','Block')][string]$BorderStyle = 'Thin'
+        [ValidateSet('None','Thin','Thick','Block')][string]$BorderStyle = 'Thin',
+        [Parameter()]
+        [scriptblock]$ClickAction
         
     )
     
@@ -23,6 +25,7 @@
     $ThisList.Width = $Width
     $ThisList.height = $Height
     $ThisList.Border = [CLRCLI.BorderStyle]::$BorderStyle
+    $ThisList.Add_Clicked($ClickAction)
 
     $ThisList
 }

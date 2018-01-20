@@ -61,6 +61,15 @@ function Enter-PoshLookSession {
                         Width = 32
                         Height = 6
                         Border = 'Thin'
+                        ClickAction = {
+                            $Dialogs[0].Dialog.Hide();
+                            $Dialogs[1].Dialog.Show();
+                            $selection = $Dialogs[0].Lists[0].List.SelectedItem
+                            $script:emails = (Get-EWSFolder -Path "MsgFolderRoot\$selection").FindItems(156)
+                            $script:emails.Subject | %{
+                                $Dialogs[1].Lists[0].List.Items.Add($_)
+                            }
+                        }
                     }
                     List = $null
                 }
@@ -83,12 +92,13 @@ function Enter-PoshLookSession {
                                 }
                                 #>
                                 $Dialogs[0].Lists[0].List.items.add($listitem -join ' ')
+                                $Dialogs[0].Lists[0].List.SetFocus()
                                 $listitem.Clear()
                             }
                         }
                     }
                     Button = $null
-                },
+                }<#,
                 @{
                     Name = 'OpenFolder'
                     Config = @{
@@ -108,6 +118,7 @@ function Enter-PoshLookSession {
                     }
                     Button = $null
                 }
+                #>
             )
         },
         @{
@@ -132,6 +143,26 @@ function Enter-PoshLookSession {
                         LeftPadding = 4
                         Width = 100
                         height = 6
+                        Border = 'Thin'
+                        ClickAction = {
+                            $selection = $Dialogs[1].Lists[0].List.SelectedItem
+                            $SelectedEmail = $script:emails | ?{$_.Subject -eq $selection}
+                            $SelectedEmailBody = ( Get-EWSMessage -id $SelectedEmail.id | select -ExpandProperty BodyText ) -replace '<[^>]+>',''
+
+                            $SelectedEmailBody | %{
+                                $Dialogs[1].Lists[1].List.Items.Add($_)
+                            }
+                        }
+                    }
+                    List = $null
+                },
+                @{
+                    Name = 'Email Preview'
+                    Config = @{
+                        TopPadding = 20
+                        LeftPadding = 10
+                        Width = 100
+                        height = 8
                         Border = 'Thin'
                     }
                     List = $null
@@ -179,7 +210,7 @@ function Enter-PoshLookSession {
     #[system.consolekeyinfo]::new('A',[System.ConsoleKey]::A,$false,$false,$false)
     #$selection
 
-    
+    #$Dialogs
     
     #$selection2 = $list2.SelectedItem
     #$list2.Keypress() -eq $true
@@ -191,3 +222,5 @@ function Enter-PoshLookSession {
     # run cli gui
     $RootWindow.Run()
 }
+
+#Enter-PoshLookSession -Mailbox 'schu@integrity-apps.com' -AllowRedirect -Credential (Get-StoredCredential -CredName Self)
