@@ -145,13 +145,16 @@ function Enter-PoshLookSession {
                         height = 6
                         Border = 'Thin'
                         ClickAction = {
+                            $Dialogs[1].Lists[1].List.Items.Clear()
                             $selection = $Dialogs[1].Lists[0].List.SelectedItem
                             $SelectedEmail = $script:emails | ?{$_.Subject -eq $selection}
-                            $SelectedEmailBody = ( Get-EWSMessage -id $SelectedEmail.id | select -ExpandProperty BodyText ) -replace '<[^>]+>',''
+                            $SelectedEmailBody = ((( Get-EWSMessage -id ($SelectedEmail.id | select -first 1) | select -ExpandProperty BodyText ) -replace '<[^>]+>','') -split "`r`n") | %{if($_){wrapText -text $_}else{$_}}
 
-                            $SelectedEmailBody | %{
+                            $ErrorActionPreference = "SilentlyContinue"
+                            $SelectedEmailBody | select -first 155 | %{
                                 $Dialogs[1].Lists[1].List.Items.Add($_)
                             }
+                            $ErrorActionPreference = "Continue"
                         }
                     }
                     List = $null
