@@ -1,6 +1,6 @@
 ﻿function Show-TUIWindow {
     Param()
-    gci "$PSScriptRoot\dll\TUI\" | select -ExpandProperty FullName | Import-Module -Force
+    #gci "$PSScriptRoot\dll\TUI\" | select -ExpandProperty FullName | Import-Module -Force
 
     $MainMenu = [TuiBase.PopUpMenu]::new(
         'Main Menu',
