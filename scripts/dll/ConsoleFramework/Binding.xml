@@ -1,0 +1,278 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Binding</name>
+    </assembly>
+    <members>
+        <member name="T:Binding.Adapters.IBindingAdapter">
+            <summary>
+            Adapter allows use third-party objects (that don't implement INotifyPropertyChange directly)
+            in data binding scenarios.
+            </summary>
+        </member>
+        <member name="M:Binding.Adapters.IBindingAdapter.GetTargetPropertyClazz(System.String)">
+            <summary>
+            Returns class object of virtual property that can be used as binding Target.
+            </summary>
+            <param name="targetProperty"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Binding.Adapters.IBindingAdapter.SetValue(System.Object,System.String,System.Object)">
+            <summary>
+            Sets value of target property. You should implement this method if you will use
+            binding in source-to-target flow (BindingMode.OneTime, BindingMode.OneWay, BindingMode.TwoWay).
+            If you will use BindingMode.OneWayToSource only, it is not necessary to implement this method.
+            </summary>
+            <param name="target">Target object</param>
+            <param name="targetProperty">Property name</param>
+            <param name="value">Value to be set</param>
+        </member>
+        <member name="M:Binding.Adapters.IBindingAdapter.GetValue(System.Object,System.String)">
+            <summary>
+            Gets the value of target property. You should implement this method if you will use
+            binding in target-to-source flow (BindingMode.OneWayToSource, BindingMode.TwoWay).
+            If you will use BindingMode.OneTime or BindingMode.OneWay, it is not necessary to implement this method.
+            </summary>
+            <param name="target">Target object</param>
+            <param name="targetProperty">Property name</param>
+            <returns></returns>
+        </member>
+        <member name="M:Binding.Adapters.IBindingAdapter.AddPropertyChangedListener(System.Object,System.ComponentModel.PropertyChangedEventHandler)">
+            <summary>
+            Subscribes to target object property change event. You should implement this method if you will use
+            binding in target-to-source flow (BindingMode.OneWayToSource, BindingMode.TwoWay).
+            If you will use BindingMode.OneTime or BindingMode.OneWay, it is not necessary to implement this method.
+            </summary>
+            <param name="target">Target object</param>
+            <param name="listener">Listener to be subscribed</param>
+            <returns>Listener wrapper object or null if there is no wrapper need</returns>
+        </member>
+        <member name="M:Binding.Adapters.IBindingAdapter.RemovePropertyChangedListener(System.Object,System.Object)">
+            <summary>
+            Unsubscribes property changed listener from target object. You should implement this method if you will use
+            binding in target-to-source flow (BindingMode.OneWayToSource, BindingMode.TwoWay).
+            If you will use BindingMode.OneTime or BindingMode.OneWay, it is not necessary to implement this method.
+            </summary>
+            <param name="target">Target object</param>
+            <param name="listenerWrapper">Listener wrapper to be unsubscribed or null if no wrapper was returned when subscribed</param>
+        </member>
+        <member name="P:Binding.Adapters.IBindingAdapter.TargetType">
+            <summary>
+            Returns supported class object.
+            </summary>
+        </member>
+        <member name="P:Binding.Adapters.IBindingAdapter.DefaultMode">
+            <summary>
+            Returns default BindingMode for this Target class. This mode will be
+            used if Binding instance is created without explicit BindingMode specification.
+            You cannot return BindingMode.Default from this method.
+            </summary>
+        </member>
+        <member name="T:Binding.Converters.ConversionResult">
+            <summary>
+            Represents value conversion result.
+            </summary>
+        </member>
+        <member name="T:Binding.Converters.IBindingConverter">
+            <summary>
+            Provides value conversion logic from first class to second and back.
+            </summary>
+        </member>
+        <member name="M:Binding.Converters.IBindingConverter.Convert(System.Object)">
+            <summary>
+            Converts value from TFirst class to TSecond.
+            </summary>
+        </member>
+        <member name="M:Binding.Converters.IBindingConverter.ConvertBack(System.Object)">
+            <summary>
+            Converts value from TSecond class to TFirst.
+            </summary>
+        </member>
+        <member name="P:Binding.Converters.IBindingConverter.FirstType">
+            <summary>
+            Returns class object for TFirst class.
+            </summary>
+        </member>
+        <member name="P:Binding.Converters.IBindingConverter.SecondType">
+            <summary>
+            Returns class object for TSecond class.
+            </summary>
+        </member>
+        <member name="T:Binding.Converters.StringToIntegerConverter">
+            <summary>
+            Converter between String and Integer.
+            </summary>
+        </member>
+        <member name="T:Binding.Observables.IObservableList">
+            <summary>
+            Marks the IList or IList&lt;T&gt; with notifications support.
+            It is not derived from IList and IList&lt;T&gt; to allow
+            to create both generic and nongeneric implementations.
+            </summary>
+        </member>
+        <member name="T:Binding.Observables.ObservableList">
+            <summary>
+            Non-generic <see cref="T:Binding.Observables.IObservableList"/> implementation.
+            </summary>
+        </member>
+        <member name="T:Binding.Observables.ObservableList`1">
+            <summary>
+            Generic implementation of <see cref="T:Binding.Observables.IObservableList"/>.
+            Non-generic IList is implemented to enforce compatibility with
+            Collection&lt;T&gt; and List&lt;T&gt;.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:Binding.Validators.IBindingValidator">
+            <summary>
+            Defines the interface that objects that participate binding validation must implement.
+            </summary>
+        </member>
+        <member name="M:Binding.Validators.IBindingValidator.Validate(System.Object)">
+            <summary>
+            Validates value.
+            </summary>
+        </member>
+        <member name="T:Binding.Validators.RequiredValidator">
+            <summary>
+            Validator checks the value is not null or empty (if value string).
+            </summary>
+        </member>
+        <member name="T:Binding.Validators.ValidationResult">
+            <summary>
+            Represents the result of data binding validation.
+            </summary>
+        </member>
+        <member name="T:Binding.OnBindingHandler">
+            <summary>
+            Handler of binding operation when data is transferred from Target to Source.
+            </summary>
+        </member>
+        <member name="T:Binding.BindingBase">
+            <summary>
+            Provides data sync connection between two objects - source and target. Both source and target can be just objects,
+            but if you want to bind to object that does not implement <see cref="T:System.ComponentModel.INotifyPropertyChanged"/>,
+            you should use it as target and use appropriate adapter (<see cref="T:Binding.Adapters.IBindingAdapter"/> implementation). One Binding instance connects
+            one source property and one target property.
+            </summary>
+        </member>
+        <member name="M:Binding.BindingBase.UpdateTarget">
+            <summary>
+            Forces a data transfer from the binding source property to the binding target property.
+            </summary>
+        </member>
+        <member name="M:Binding.BindingBase.ApplyChanges(System.Collections.IList,System.Collections.IList,Binding.Observables.ListChangedEventArgs)">
+            <summary>
+            Synchronizes changes of srcList, applying them to destList.
+            Changes are described in args.
+            </summary>
+        </member>
+        <member name="M:Binding.BindingBase.UpdateSource">
+            <summary>
+            Sends the current binding target value to the binding source property in TwoWay or OneWayToSource bindings.
+            </summary>
+        </member>
+        <member name="M:Binding.BindingBase.Bind">
+            <summary>
+            Connects Source and Target objects.
+            </summary>
+        </member>
+        <member name="M:Binding.BindingBase.Unbind">
+            <summary>
+            Disconnects Source and Target objects.
+            </summary>
+        </member>
+        <member name="M:Binding.BindingBase.SetSource(System.ComponentModel.INotifyPropertyChanged)">
+            <summary>
+            Changes the binding Source object. If current binding state is bound,
+            the <see cref="M:Binding.BindingBase.Unbind"/> and <see cref="M:Binding.BindingBase.Bind"/> methods will be called automatically.
+            <param name="source">New Source object</param>
+            </summary>
+        </member>
+        <member name="M:Binding.BindingBase.SetTarget(System.Object)">
+            <summary>
+            Changes the binding Target object. If current binding state is bound,
+            the <see cref="M:Binding.BindingBase.Unbind"/> and <see cref="M:Binding.BindingBase.Bind"/> methods will be called automatically.
+            @param target New Target object
+            </summary>
+        </member>
+        <member name="P:Binding.BindingBase.UpdateSourceIfBindingFails">
+            <summary>
+            If target value conversion or validation fails, the source property will be set to null
+            if this flag is set to true. Otherwise the source property setter won't be called.
+            Default value is true
+            </summary>
+        </member>
+        <member name="E:Binding.BindingBase.OnBinding">
+            <summary>
+            Event will be invoked when data goes from Target to Source.
+            </summary>
+        </member>
+        <member name="P:Binding.BindingBase.Validator">
+            <summary>
+            Validator triggered when data flows from Target to Source.
+            </summary>
+        </member>
+        <member name="P:Binding.BindingBase.Adapter">
+            <summary>
+            BindingAdapter used as bridge to Target if Target doesn't
+            implement INotifyPropertyChanged.
+            </summary>
+        </member>
+        <member name="P:Binding.BindingBase.Converter">
+            <summary>
+            Converter used for values conversion between Source and Target.
+            </summary>
+        </member>
+        <member name="T:Binding.BindingMode">
+            <summary>
+            Determines how data will flow - from Source to Target,
+            from Target to Source or both.
+            </summary>
+        </member>
+        <member name="F:Binding.BindingMode.OneTime">
+            <summary>
+            Data will be synchronized one time in Bind() call from Source to Target.
+            </summary>
+        </member>
+        <member name="F:Binding.BindingMode.TwoWay">
+            <summary>
+            Data is synchronized in two-way mode. When Source property is changed, it will update the Target property,
+            when Target property is changed, it will update the Source.
+            </summary>
+        </member>
+        <member name="F:Binding.BindingMode.OneWay">
+            <summary>
+            Data is synchronized from Source to Target only.
+            </summary>
+        </member>
+        <member name="F:Binding.BindingMode.OneWayToSource">
+            <summary>
+            Data is synchronized from Target to Source only.
+            </summary>
+        </member>
+        <member name="F:Binding.BindingMode.Default">
+            <summary>
+            Mode is determined by adapter. By default it is TwoWay mode (if no adapter is found).
+            </summary>
+        </member>
+        <member name="T:Binding.BindingResult">
+            <summary>
+            Represents result of one synchronization operation from Target to Source.
+            If hasConversionError is true, message will represent conversion error message.
+            If hasValidationError is true, message will represent validation error message.
+            Both hasConversionError and hasValidationError cannot be set to true.
+            </summary>
+        </member>
+        <member name="T:Binding.BindingSettingsBase">
+            <summary>
+            Contains converters, validators and adapters.
+            </summary>
+        </member>
+        <member name="M:Binding.BindingSettingsBase.InitializeDefault">
+            <summary>
+            Adds default set of converters and ui adapters.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,1584 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ConsoleFramework</name>
+    </assembly>
+    <members>
+        <member name="T:ConsoleFramework.Controls.ButtonBase">
+            <summary>
+            Base class for buttons and toggle buttons (checkboxes and radio buttons).
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.Control">
+            <summary>
+            Base class for all controls.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.Control.LastOverlappedRect">
+            <summary>
+            Часть RenderSlotRect контрола, которая в текущий момент перекрывается
+            одним или несколькими соседями, размещёнными выше по Z-Order. Поддерживается
+            в актуальном состоянии системой размещения для того, чтобы обнаруживать моменты,
+            когда часть, скрытая до этого другим контролом, становится видимой, и нужно
+            обновить эту часть изображения на экране. Так как сам контрол при этом может не быть
+            добавлен в Invalidation Queue, то это нужно делать автоматически.
+            Определяется относительно буфера самого контрола (а не Parent'a, как RenderSlotRect).
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.RaiseEvent(ConsoleFramework.Events.RoutedEvent,ConsoleFramework.Events.RoutedEventArgs)">
+            <summary>
+            Addes specified routed event to event queue. This event will be processed in next pass.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.Control.Children">
+            <summary>
+            Read-only collection of children controls ordered by Z-Order.
+            (Last items will be on top.)
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.Control.children">
+            <summary>
+            Collection of children controls.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.OnParentChanged">
+            <summary>
+            Called when control is added to some parent or removed from.
+            Default implementation does nothing.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.ControlSetAsRootElement">
+            <summary>
+            Called by ConsoleApplication when Run() initializes the root element
+            to init attached-detached system to be consistent.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.SwapChildsZOrder(System.Int32,System.Int32)">
+            <summary>
+            Swaps controls z-order by specified indexes.
+            </summary>
+            <param name="a">Index of first child</param>
+            <param name="b">Index of second child</param>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.Control_LostKeyboardFocus(System.Object,ConsoleFramework.Events.KeyboardFocusChangedEventArgs)">
+            <summary>
+            Если один из дочерних контролов окна теряет фокус, то будет вызван этот обработчик
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.SetValidityToRender">
+            <summary>
+            Changes layout validity to Render and returns true if this control
+            should be treated as layout revalidated. (Returns true if layout validity 
+            has actually changed to Render and there are some subscribers to LayoutRevalidated event).
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.MeasureOverride(ConsoleFramework.Core.Size)">
+            <summary>
+            Возвращает размеры, необходимые для размещения контрола вместе с его дочерними элементами.
+            <para>
+            Если возвращаемый размер меньше availableSize, то это может быть учтено родительским контролом,
+            и он может выделить под контрол слот, меньший, чем планировалось изначально. А может быть
+            проигнорировано, в этом случае контрол будет размещён в слоте, большем, чем собственно
+            контролу необходимо. Контрол должен учитывать такой вариант развития событий (если его
+            реальное размещение превышает ожидания).
+            </para>
+            <para>
+            Если возвращаемый размер больше availableSize, то опять же тут 2 варианта развития событий.
+            В первом случае родительский контрол согласно логике размещения может попробовать найти
+            дополнительное место для контрола и вызвать Measure повторно с бОльшим availableSize.
+            Либо, если подобной логики в алгоритме размещения родительского контрола не предусмотрено,
+            или же места нет, - возвращённый desired size будет записан в unclipped desired size и на этапе
+            arrange контрол будет размещен в желаемых размерах, однако реально столько места он занимать не
+            будет, и в контексте родительского контрола его рендеринг будет обрезан.
+            </para>
+            <para>
+            Нельзя возвращать int.MaxValue в качестве width или height возвращаемого размера.
+            </para>
+            <para>
+            При реализации панелей необходимо в обязательном порядке вызвать Measure для всех дочерних
+            элементов, причём количество вызовов может быть любым, но последний для каждого контрола
+            вызов должен быть выполнен именно с теми размерами, которые реально будут использоваться
+            при размещении элемента.
+            </para>
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.Arrange(ConsoleFramework.Core.Rect)">
+            <summary>
+            Размещает элемент управления вместе с дочерними контролами в указанном слоте.
+            После выполнения метода будут установлены все свойства, необходимые для рендеринга контрола.
+            Если Arrange вызывался с размерами, меньшими чем те, которые были возвращены контролом в 
+            MeasureOverride, то рендеринг контрола будет обрезанным.
+            <para>
+            Если Arrange вызывался с размерами, превышающими запрошенные в MeasureOverride, то
+            слот, выделенный контролу, будет больше ожидаемого, и то, как будет использовано дополнительное
+            место - зависит от логики ArrangeOverride контрола. Если ArrangeOverride вернет старое значение
+            (меньшее чем нынешний finalSize), то RenderSize будет меньше RenderSlotRect, и часть пространства,
+            выделенного для размещения элемента управления, просто не будет им использоваться.
+            </para>
+            <para>
+            Внимание ! Если вы реализуете логику панели в коде метода ArrangeOverride, то очень важно то, что нужно следить за тем,
+            с какими аргументами вы вызываете метод Arrange для дочерних элементов. Если вы передаёте туда размеры, превышающие те,
+            которые будут возвращены из ArrangeOverride родительского элемента управления, то это будет означать следующее: родительский
+            контрол дочернему выделит места больше чем имеется (или ровно всё место), и дочерний контрол при рендеринге будет
+            полностью затирать родительский элемент управления. За рамки слота родительского контрола он, конечно, не залезет
+            (обрежется системой отрисовки), но и родительскому контролу не даст ничего нарисовать.
+            </para>
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.ArrangeOverride(ConsoleFramework.Core.Size)">
+            <summary>
+            Реализация <see cref="M:ConsoleFramework.Controls.Control.ArrangeOverride(ConsoleFramework.Core.Size)"/> по умолчанию возвращает исходный finalSize.
+            Поведение по умолчанию подходит для всех конечных контролов (так как им не нужно
+            размещать дочерние элементы управления и их размеры зависят только от их собственного
+            содержимого). Однако для панелей правильная реализация этого метода необходима для
+            слаженной и корректной работы системы размещения.
+            
+            В этом методе дочерний контрол должен разместить все дочерние элементы управления,
+            вызвав для для каждого из них метод <see cref="M:ConsoleFramework.Controls.Control.Arrange(ConsoleFramework.Core.Rect)"/>, и вернуть размеры,
+            которые сам контрол с детьми реально занял по итогам операции размещения. Если контрол занял
+            меньше места, а вернул больше (например, просто сделал return finalSize, хотя места занял
+            меньше), то у контрола останется пустое свободное пространство, и надо будет
+            его заполнить графикой. Соответственно, при Alignment = Stretch контрол будет занимать всю
+            доступную ему площадь. Если же возвращать реальные размеры, то при Alignment = Stretch и
+            избыточном месте контрол будет выровнен по центру автоматически (по центру RenderSlot'а,
+            предоставленного родительским элементом управления). Если дочерний элемент не должен
+            быть показан, нужно вызвать для него <see cref="M:ConsoleFramework.Controls.Control.Arrange(ConsoleFramework.Core.Rect)"/> с пустым прямоугольником в качестве аргумента,
+            в противном случае старое значение останется, и скорее всего будет мусор в буфере контрола.
+            
+            Значение, возвращённое этим методом, устанавливается в качестве <see cref="P:ConsoleFramework.Controls.Control.RenderSize"/>
+            контрола, и <see cref="P:ConsoleFramework.Controls.Control.ActualWidth"/> и <see cref="P:ConsoleFramework.Controls.Control.ActualHeight"/> после этого
+            возвращают именно его.
+            <param name="finalSize">The final area within the parent that this element
+            should use to arrange itself and its children.</param>
+            <returns>The actual size used.</returns>
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.ResetValidity(System.Collections.Generic.List{ConsoleFramework.Controls.Control})">
+            <summary>
+            Возвращает список контролов, у которых был вызван метод ResetValidity, и которые
+            имеют подписчиков на событие LayoutInvalidated. То есть если у контрола был вызван
+            метод ResetValidity, но подписчиков на это событие он не имеет, его в этом списке быть
+            не должно.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.Invalidate">
+            <summary>
+            Добавляет этот контрол в очередь для обновления. При следующем выполнении цикла
+            обновления UI система размещения вызовет Measure, Arrange и Render. Дочерние контролы,
+            чьи размеры не изменились, перерисованы не будут. То же касается родительских контролов,
+            если размеры самого контрола не изменились. Но этот контрол будет перерисован 
+            на экране обязательно, вместе со всеми дочерними, даже если у него ничего не изменилось.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.TranslatePoint(ConsoleFramework.Controls.Control,ConsoleFramework.Core.Point,ConsoleFramework.Controls.Control)">
+            <summary>
+            Переводит точку point из системы координат source в систему координат dest.
+            В качестве source и dest можно указывать null, в этом случае за систему координат будет
+            взята система координат экрана консоли.
+            </summary>
+            <param name="source">Контрол, относительно которого задан point или null если координата глобальная.</param>
+            <param name="point">Координаты точки относительно source.</param>
+            <param name="dest">Контрол, относительно которого необходимо вычислить координаты точки.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.FindCommonAncestor(ConsoleFramework.Controls.Control,ConsoleFramework.Controls.Control)">
+            <summary>
+            Returns common ancestor for specified controls pair.
+            If there are no common ancestor found, null will be returned.
+            But this situation is impossible because there are only one main control in application.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.HitTest(ConsoleFramework.Core.Point)">
+            <summary>
+            Performs hit testing to a visible part of control.
+            </summary>
+            <param name="rawPoint"></param>
+            <returns>True if point is on control, otherwise false.</returns>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.HitTest(ConsoleFramework.Core.Point,ConsoleFramework.Controls.Control,ConsoleFramework.Controls.Control)">
+            <summary>
+            Performs hit testing to a visible part of child control.
+            Static version of method.
+            </summary>
+            <param name="rawPoint"></param>
+            <param name="parent"></param>
+            <param name="child"></param>
+            <returns>True if point is on child, false otherwise.</returns>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.IsPointVisible(ConsoleFramework.Core.Point)">
+            <summary>
+            Проверяет, не перекрывается ли точка point контрола другими контролами.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.IsPointVisible(ConsoleFramework.Controls.Control,ConsoleFramework.Core.Point)">
+            <summary>
+            Проверяет, не перекрывается ли точка point контрола control другими контролами.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.Render(ConsoleFramework.Rendering.RenderingBuffer)">
+            <summary>
+            You should define your rendering logic here.
+            </summary>
+            <param name="buffer">Buffer where rendered content will be stored.</param>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.SetCursorPosition(ConsoleFramework.Core.Point)">
+            <summary>
+            Sets the position of console cursor.
+            </summary>
+            <param name="point">Coords relatively to this control.</param>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.RenderString(System.String,ConsoleFramework.Rendering.RenderingBuffer,System.Int32,System.Int32,System.Int32,ConsoleFramework.Native.Attr)">
+            <summary>
+            Записывает строку в буфер, обрезая её при необходимости (ставя в конце две точки).
+            </summary>
+            <param name="s">Строка</param>
+            <param name="buffer">Буфер вывода</param>
+            <param name="x">X-координата, с которой начинать вывод строки</param>
+            <param name="y">Y-координата</param>
+            <param name="maxWidth">Доступная для вывода ширина (начиная с x). То есть x + maxWidth не должен
+            превышать ActualWidth контрола</param>
+            <param name="attr">Атрибуты</param>
+            <returns>Количество реально выведенных в буфер пикселей, min(s.len, maxWidth)</returns>
+        </member>
+        <member name="F:ConsoleFramework.Controls.Control.StoredFocus">
+            <summary>
+            Тут хранится ссылка на дочерний элемент окна, который потерял фокус последним.
+            При восстановлении фокуса на самом окне WindowsHost использует это поле для
+            восстановления фокуса на том элементе, на котором он был.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.PassFocusToChildUnderPoint(ConsoleFramework.Events.MouseEventArgs)">
+            <summary>
+            Определяет дочерний элемент, находящийся под курсором мыши,
+            и передаёт на него фокус, если он - Focusable и Visible.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.HasFocus">
+            <summary>
+            Обладает ли на данный момент текущий контрол фокусом (т.е. принимает клавиатурный ввод)
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.MeasureArgument">
+            <summary>
+            Just for debug.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.Name">
+            <summary>
+            Name of control. If set, it should be unique for siblings to avoid
+            ambiguities when searching by name.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.Parent">
+            <summary>
+            Parent of current control in visual tree.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.ActualOffset">
+            <summary>
+            Смещение виртуального холста контрола отн-но холста родительского элемента управления.
+            Если контрол целиком размещен в родительском элементе управления и не обрезан маргином,
+            то ActualOffset численно равен RenderSlotRect.Location. Если же часть контрола скрыта, то
+            ActualOffset отличается от RenderSlotRect.Location.
+            Учитывает <see cref="P:ConsoleFramework.Controls.Control.Margin"/>, <see cref="P:ConsoleFramework.Controls.Control.HorizontalAlignment"/> и <see cref="P:ConsoleFramework.Controls.Control.VerticalAlignment"/>.
+            </summary>
+        </member>
+        <member name="E:ConsoleFramework.Controls.Control.Invalidated">
+            <summary>
+            Вызывается когда у контрола вызван метод Invalidate().
+            </summary>
+        </member>
+        <member name="E:ConsoleFramework.Controls.Control.LayoutInvalidated">
+            <summary>
+            Когда состояние LayoutValidity контрола сбрасывается методом ResetValidity
+            Это происходит при вызове Renderer.InvalidateLayout(), а не сразу же после вызова
+            control.Invalidate() - последний лишь добавляет его в очередь.
+            Не рекомендуется надолго задавать обработчики этого события, т.к. может привести к
+            падению производительности. Лучше отписаться сразу же после того, как необходимость в
+            обработчике отпала.
+            </summary>
+        </member>
+        <member name="E:ConsoleFramework.Controls.Control.LayoutRevalidated">
+            <summary>
+            Когда состояние LayoutValidity становится Render.
+            Не рекомендуется надолго задавать обработчики этого события, т.к. может привести к
+            падению производительности. Лучше отписаться сразу же после того, как необходимость в
+            обработчике отпала.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.Focusable">
+            <summary>
+            Shows whether control can handle keyboard input or can't.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.TabOrder">
+            <summary>
+            Specifies the order for keyboard focus move.
+            Takes 0 by default.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.IsFocusScope">
+            <summary>
+            Показывает, может ли элемент управления выступать в роли FocusScope.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.RenderSize">
+            <summary>
+            Размер, под который контрол будет рендерить свое содержимое.
+            Может быть больше RenderSlotRect из-за случаев, когда контрол не влезает в рамки,
+            отведенные методом Arrange. Контрол будет обрезан лайаут-системой в соответствии с RenderSlotRect.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.RenderSlotRect">
+            <summary>
+            Отведенный родительским элементом управления слот для отрисовки.
+            Задается аргументом при вызове <see cref="M:ConsoleFramework.Controls.Control.Arrange(ConsoleFramework.Core.Rect)"/>.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Control.LayoutClip">
+            <summary>
+            Прямоугольник внутри виртуального холста контрола, в которое будет выведена графика.
+            Все остальное будет обрезано в соответствии с установленными значениями свойств
+            <see cref="P:ConsoleFramework.Controls.Control.Margin"/>, <see cref="P:ConsoleFramework.Controls.Control.HorizontalAlignment"/> и <see cref="P:ConsoleFramework.Controls.Control.VerticalAlignment"/>.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Control.MinMax.#ctor(System.Int32,System.Int32,System.Int32,System.Int32,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            Определяет реальные констрейнты для текущих значений MinHeight/MaxHeight, MinWidth/MaxWidth
+            и Width/Height. Min-значения не могут быть null, по дефолту равны нулю, также не могут быть int.MaxValue.
+            Max-значения тоже не могут быть null, по дефолту равны int.MaxValue.
+            Width и Height могут быть не заданы - в этом случае они контрол будет занимать как можно большее
+            доступное пространство.
+            В случае конфликта приоритет имеет Min-property, затем явно заданное значение (Width или Height),
+            и в последнюю очередь играет роль Max-property.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Events.ICommandSource">
+            <summary>
+             An interface for classes that know how to invoke a Command.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Events.ICommandSource.Command">
+            <summary>
+            The command that will be executed when the class is "invoked."
+            Classes that implement this interface should enable or disable based on the command's CanExecute return value.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Events.ICommandSource.CommandParameter">
+            <summary>
+            The parameter that will be passed to the command when executing the command.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.ButtonBase.clicking">
+            <summary>
+            Is button in clicking mode (when mouse pressed but not released yet).
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.ButtonBase.pressed">
+            <summary>
+            Is button pressed using mouse now.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.ButtonBase.pressedUsingKeyboard">
+            <summary>
+            True in some time after user has pressed button using keyboard
+            (~ 0.5 second) - just for animate pressing
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.CheckBox">
+            <summary>
+            Represents a control that a user can select and clear.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.ComboBox">
+            <summary>
+            В свёрнутом состоянии представляет собой однострочный контрол. При разворачивании списка
+            создаётся всплывающее модальное кастомное окошко и показывается пользователю, причём первая
+            строчка этого окна - прозрачная и через неё видно сам комбобокс (это нужно для того, чтобы
+            обрабатывать клики по комбобоксу - при клике на прозрачную область комбобокс должен сворачиваться).
+            Если этого бы не было, то с учётом того, что модальное окно показывается с флагом
+            outsideClickWillCloseWindow = true, клик по самому комбобоксу приводил бы к мгновенному закрытию
+            и открытию комбобокса заново.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.ComboBox.#ctor(System.Boolean)">
+            <summary>
+            Creates combobox instance.
+            </summary>
+            <param name="shadow">Display shadow or not</param>
+        </member>
+        <member name="T:ConsoleFramework.Controls.Window">
+            <summary>
+            Представляет собой элемент управления, который может содержать только 1 дочерний элемент.
+            Как правило, в роли дочернего элемента будут использоваться менеджеры размещения.
+            Window должно знать о хосте, в контексте которого оно располагается и уметь с ним взаимодействовать.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Window.Window_OnPreviewMouseDown(System.Object,ConsoleFramework.Events.MouseButtonEventArgs)">
+            <summary>
+            По клику мышки ищет конечный Focusable контрол, который размещён 
+            на месте нажатия и устанавливает на нём фокус.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.Window.X">
+            <summary>
+            Координаты в рамках WindowsHost. По сути - костыль вместо
+            отсутствующих пока Attached properties.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.LayoutInfo">
+            <summary>
+            Полностью описывает состояние лайаута контрола.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.GridUnitType">
+            <summary>
+            Describes the kind of value that a GridLength object is holding.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.GridUnitType.Auto">
+            <summary>
+            The size is determined by the size properties of the content object.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.GridUnitType.Pixel">
+            <summary>
+            The value is expressed as a pixel.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.GridUnitType.Star">
+            <summary>
+            The value is expressed as a weighted proportion of available space.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.GridLength">
+            <summary>
+            Represents the length of elements that explicitly support Star unit types.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.GroupBox">
+            <summary>
+            Оборачивает указанный контрол рамкой с заголовком.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.GroupBox.FitSizeToContent">
+            <summary>
+            If true, child will always win in layout battle.
+            If false (default), parent will always win (and groupbox size
+            will be constrained according to passed availableSize).
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.ListBox">
+            <summary>
+            Список элементов с возможностью выбрать один из них.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.ListBox.currentItemShouldBeVisibleAtBottom">
+            <summary>
+            Makes the current selected item to be visible at bottom of scroll viewer
+            (if any wrapping scroll viewer presents).
+            Call this method after any PgDown or keyboard down arrow handling.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.ListBox.currentItemShouldBeVisibleAtTop">
+            <summary>
+            Makes the current selected item to be visible at top of scroll viewer
+            (if any wrapping scroll viewer presents).
+            Call this method after any PgUp or keyboard up arrow handling.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.ListBox.PageSize">
+            <summary>
+            Количество элементов, которое пропускается при обработке нажатий PgUp и PgDown.
+            По умолчанию null, и нажатие PgUp и PgDown эквивалентно нажатию Home и End.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.MenuItem">
+            <summary>
+            Item of menu.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.MenuItem.ReinitializePopup">
+            <summary>
+            Call this method if you have changed menu items set
+            after menu popup has been shown.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.MenuItem.getTitleLength(System.String)">
+            <summary>
+            Counts length of string to be rendered with underscore prefixes on.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.MenuItem.renderString(System.String,ConsoleFramework.Rendering.RenderingBuffer,System.Int32,System.Int32,System.Int32,ConsoleFramework.Native.Attr,ConsoleFramework.Native.Attr)">
+            <summary>
+            Renders string using attr, but if character is prefixed with underscore,
+            symbol will use specialAttrs instead. To render underscore pass two underscores.
+            Example: "_File" renders File when 'F' is rendered using specialAttrs.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.MenuItem.Popup.DisconnectMenuItems">
+            <summary>
+            Call this method to remove all menu items that are used as child items.
+            It is necessary before reuse MenuItems in another Popup instance.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.MenuItem.Popup.#ctor(System.Collections.Generic.IEnumerable{ConsoleFramework.Controls.MenuItemBase},System.Boolean,System.Int32)">
+            <summary>
+            Первая строчка всплывающего окна - особенная. Она прозрачна с точки зрения
+            рендеринга полностью. Однако Opacity для событий мыши в ней разные.
+            Первые width пикселей в ней - непрозрачные для событий мыши, но при клике на них
+            окно закрывается вызовом Close(). Остальные ActualWidth - width пикселей - прозрачные
+            для событий мыши, и нажатие мыши в этой области приводит к тому, что окно
+            WindowsHost закрывает окно как окно с OutsideClickClosesWindow = True.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.Separator">
+            <summary>
+            Cannot be added in root menu.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Menu.CloseAllSubmenus">
+            <summary>
+            Forces all open submenus to be closed.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.Panel">
+            <summary>
+            Контрол, который может состоять из других контролов.
+            Позиционирует входящие в него контролы в соответствии с внутренним поведением панели и
+            заданными свойствами дочерних контролов.
+            Как и все контролы, связан с виртуальным канвасом.
+            Может быть самым первым контролом программы (окно не может, к примеру, оно может существовать
+            только в рамках хоста окон).
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Panel.MeasureOverride(ConsoleFramework.Core.Size)">
+            <summary>
+            Размещает элементы вертикально, самым простым методом.
+            </summary>
+            <param name="availableSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ConsoleFramework.Controls.Panel.Render(ConsoleFramework.Rendering.RenderingBuffer)">
+            <summary>
+            Рисует исключительно себя - просто фон.
+            </summary>
+            <param name="buffer"></param>
+        </member>
+        <member name="P:ConsoleFramework.Controls.ProgressBar.Percent">
+            <summary>
+            Percent (from 0 to 100).
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.ContentShouldBeScrolledEventArgs">
+            <summary>
+            Event args containing info for ScrollViewer - how to display inner content.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.ScrollViewer">
+            <summary>
+            Контрол, виртуализирующий содержимое так, что можно прокручивать его, если
+            оно не вмещается в отведённое пространство.
+            todo : add scroller dragging support
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.ScrollViewer.ContentShouldBeScrolledEvent">
+            <summary>
+            Event can be fired by children when needs to explicitly set current
+            visible region (for example, ListBox after mouse wheel scrolling).
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.ScrollViewer.HorizontalScrollerPos">
+            <summary>
+            Returns position of horizontal scroller if it is visible now, null otherwise.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Controls.ScrollViewer.VerticalScrollerPos">
+            <summary>
+            Returns position of scroller if it is visible now, null otherwise.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.TextBox">
+            <summary>
+            todo : добавить обработку выделения текста
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.TreeItem.Position">
+            <summary>
+            Pos in TreeView listbox.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.TreeView.onItemInserted(System.Int32)">
+            <summary>
+            Maintains the correct order of items in flat list.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Controls.TreeView.treeItemsFlat">
+            <summary>
+            Flat list of tree items in order corresponding to actual listbox content.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Controls.WindowsHost">
+            <summary>
+            Класс, служащий хост-панелью для набора перекрывающихся окон.
+            Хранит в себе список окон в порядке их Z-Order и отрисовывает рамки,
+            управляет их перемещением.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.WindowsHost.onPreviewMouseWheel(System.Object,ConsoleFramework.Events.MouseWheelEventArgs)">
+            <summary>
+            Interrupts wheel event propagation if its source window is not on top now.
+            </summary>
+            <param name="sender"></param>
+            <param name="args"></param>
+        </member>
+        <member name="M:ConsoleFramework.Controls.WindowsHost.activateWindow(ConsoleFramework.Controls.Window)">
+            <summary>
+            Делает указанное окно активным. Если оно до этого не было активным, то
+            по Z-индексу оно будет перемещено на самый верх, и получит клавиатурный фокус ввода.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.WindowsHost.onPreviewMouseEvents(ConsoleFramework.Events.MouseEventArgs,System.Int32)">
+            <summary>
+            Обработчик отвечает за вывод на передний план неактивных окон, на которые нажали мышкой,
+            и за обработку мыши, когда имеется модальное окно - в этом случае обработчик не пропускает
+            события, которые идут мимо модального окна, дальше по дереву (Tunneling) - устанавливая
+            Handled в True, либо закрывает модальное окно, если оно было показано с флагом
+            OutsideClickClosesWindow.
+            eventType = 0 - PreviewMouseDown
+            eventType = 1 - PreviewMouseUp
+            eventType = 2 - PreviewMouseMove
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.WindowsHost.ShowModal(ConsoleFramework.Controls.Window,System.Boolean)">
+            <summary>
+            Adds window to window host children and shows it as modal window.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.WindowsHost.Show(ConsoleFramework.Controls.Window)">
+            <summary>
+            Adds window to window host children and shows it.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Controls.WindowsHost.CloseWindow(ConsoleFramework.Controls.Window)">
+            <summary>
+            Removes window from window host.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Core.Color">
+            <summary>
+            Set of predefined colors.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Core.Colors.Blend(ConsoleFramework.Core.Color,ConsoleFramework.Core.Color)">
+            <summary>
+            Blends foreground and background colors into one char attributes code.
+            </summary>
+            <param name="foreground">Foreground color</param>
+            <param name="background">Background color</param>
+        </member>
+        <member name="T:ConsoleFramework.Core.Thickness">
+            <summary>
+            WPF Thickness analog but using integers instead doubles.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Core.ThicknessConverter">
+            <summary>
+            Converter for XAML. Supports only String -> Thickness conversion now.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Core.VisualTreeHelper.FindChildByName(ConsoleFramework.Controls.Control,System.String)">
+            <summary>
+            Рекурсивно ищёт дочерний элемент по указанному Name.
+            Если в результате поиска подходящий элемент не был найден, возвращается null.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Core.VisualTreeHelper.FindClosestParent``1(ConsoleFramework.Controls.Control)">
+            <summary>
+            Ищет ближайший родительский элемент контрола типа T.
+            Возвращает его либо null, если такой не найден.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="control"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ConsoleFramework.Events.EventManager">
+            <summary>
+            Central point of events management routine.
+            Provides events routing.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.EventManager.getTargetsSubscribedTo(ConsoleFramework.Events.RoutedEvent)">
+            <summary>
+            Возвращает список таргетов, подписанных на указанное RoutedEvent.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.EventManager.ProcessEvents">
+            <summary>
+            Processes all routed events in queue.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.EventManager.findSource(ConsoleFramework.Core.Point,ConsoleFramework.Controls.Control)">
+            <summary>
+            Находит самый верхний элемент под указателем мыши с координатами rawPoint.
+            Учитывается прозрачность элементов - если пиксель, куда указывает мышь, отмечен как
+            прозрачный для событий мыши (opacity от 4 до 7), то они будут проходить насквозь,
+            к следующему контролу.
+            Так обрабатываются, например, тени окошек и прозрачные места контролов (первый столбец Combobox).
+            </summary>
+            <param name="rawPoint"></param>
+            <param name="control">RootElement для проверки всего визуального дерева.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ConsoleFramework.Events.EventManager.QueueEvent(ConsoleFramework.Events.RoutedEvent,ConsoleFramework.Events.RoutedEventArgs)">
+            <summary>
+            Adds specified routed event to event queue. This event will be processed in next pass.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Events.FocusManager">
+            <summary>
+            Responsible to manage elements that has a keyboard focus.
+            Also maintains the console mouse cursor visibility according to
+            current focused control.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.RefreshMouseCursor">
+            <summary>
+            Refreshes the display of mouse cursor according to current focused element
+            and its cursor visibility status.
+            
+            Вызывается после обновления лайаута (если были какие-то изменения),
+            а также при смене FocusedElement либо при изменении локального состояния курсора
+            на элементе уплавления, который сейчас удерживает фокус клавиатурного ввода.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.tryChangeFocusedElementTo(ConsoleFramework.Controls.Control,System.Boolean)">
+            <summary>
+            Забирает фокус у текущего фокусного элемента и устанавливает фокус указанному элементу управления.
+            Если focusedControl - null, то FocusedElement будет установлен в null и более клавиатурный
+            ввод не будет обрабатываться до тех пор, пока фокус не будет отдан другому контролу.
+            </summary>
+            <param name="focusedControl"></param>
+            <param name="ignorePreviewHandled"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.SetFocusScope(ConsoleFramework.Controls.Control)">
+            <summary>
+            Устанавливает текущую область фокуса. Область фокуса задаётся родительским элементом scope.
+            Все его дочерние Focusable-элементы после этого могут получать фокус.
+            Изначально фокус получит первый Focusable элемент.
+            Если область фокуса не содержит Focusable элементов, операция не будет выполнена.
+            </summary>
+            <param name="scope"></param>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.SetFocus(ConsoleFramework.Controls.Control)">
+            <summary>
+            Находит первую подходящую область фокуса среди родительских элементов указанного
+            контрола, и устанавливает соответствующий фокус. Первая подходящая - это первый
+            вверх по иерархии контролов родительский контрол, у которого свойство IsFocusScope = True.
+            Если control - null, то фокус будет убран, и клавиатурный ввод больше не будет обрабатываться
+            (не будут генерироваться маршрутизируемые события, назначаемые текущему фокусному элементу).
+            </summary>
+            <param name="control"></param>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.findClosestScope(ConsoleFramework.Controls.Control)">
+            <summary>
+            Находит ближайший вверх по иерархии контролов элемент управления со значением IsFocusScope = True.
+            Возвращает null, если такого элемента управления нет.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.SetFocus(ConsoleFramework.Controls.Control,ConsoleFramework.Controls.Control)">
+            <summary>
+            Устанавливает текущую область фокуса scope и передает фокус элементу управления control
+            </summary>
+            <param name="scope"></param>
+            <param name="control"></param>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.InsertionSort``1(System.Collections.Generic.IList{``0},System.Comparison{``0})">
+            <summary>
+            Simple stable sorting implementation.
+            http://www.csharp411.com/c-stable-sort/
+            todo : remove after JSIL OrderBy linq will be implemented
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.getControlsInScope(ConsoleFramework.Controls.Control)">
+            <summary>
+            returns visible and focusable childs of scope ordered by z-index
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.BeforeRemoveElementFromTree(ConsoleFramework.Controls.Control)">
+            <summary>
+            Должен быть вызван перед удалением поддерева элементов.
+            Если удаляется поддерево элементов, содержащее в себе контрол, который имеет фокус,
+            то FocusManager сбрасывает FocusedElement в null.
+            Этот юзкейс не отменяется установкой Handled = true в Preview-событиях.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.FocusManager.isFocusedElementInSubtree(ConsoleFramework.Controls.Control)">
+            <summary>
+            Определяет, содержит ли поддерево визуальных элементов, начинающееся с control,
+            текущий элемент, удерживающий в данных момент клавиатурный фокус - FocusedElement.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Events.FocusManager.FocusedElement">
+            <summary>
+            Control that has a keyboard focus now.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Events.FocusManager.CurrentScope">
+            <summary>
+            Текущая область фокуса
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Events.ICommand">
+            <summary>
+             An interface that allows an application author to define a method to be invoked.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.ICommand.CanExecute(System.Object)">
+            <summary>
+            Returns whether the command can be executed.
+            </summary>
+            <param name="parameter">A parameter that may be used in executing the command. This parameter may be ignored by some implementations.</param>
+            <returns>true if the command can be executed with the given parameter and current state. false otherwise.</returns>
+        </member>
+        <member name="M:ConsoleFramework.Events.ICommand.Execute(System.Object)">
+            <summary>
+            Defines the method that should be executed when the command is executed.
+            </summary>
+            <param name="parameter">A parameter that may be used in executing the command. This parameter may be ignored by some implementations.</param>
+        </member>
+        <member name="E:ConsoleFramework.Events.ICommand.CanExecuteChanged">
+            <summary>
+            Raised when the ability of the command to execute has changed.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Events.KeyGestureConverter">
+            <summary>
+            KeyGesture format: [MODIFIERS+]KEY[,DISPLAY_STRING]
+            Examples: "ALT+CTRL+PGUP", "CTRL+COMMA", "SHIFT+F"
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.MouseEventArgs.GetPosition(ConsoleFramework.Controls.Control)">
+            <summary>
+            Возвращает преобразованные координаты относительно указанного контрола.
+            Если контрол захватывает ввод, то получаемые таким образом координаты могут
+            выходить за пределы контрола (отрицательные или больше ActualWidth/ActualHeight).
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Events.MouseButtonEventArgs.AutoRepeat">
+            <summary>
+            Returns true if this event is autogenerated by timer tick
+            (if user presses and holds left mouse button, for example).
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Events.RelayCommand">
+            <summary>
+            Command constructed from delegates.
+            CanExecute = True by default if no canExecute functor provided.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Events.RoutingStrategy">
+            <summary>
+            Тип маршрутизации события.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Events.RoutingStrategy.Tunnel">
+            <summary>
+            Событие передаётся всем подписчикам, от корневого элемента управления к источнику.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Events.RoutingStrategy.Bubble">
+            <summary>
+            Событие передаётся всем подписчикам, от источника до корневого элемента управления.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Events.RoutingStrategy.Direct">
+            <summary>
+            Событие будет передано только тем подписчикам, которые подписаны на
+            источник события.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Events.RoutedEventKey">
+            <summary>
+            Key for internal usage in routed event management maps.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Events.RoutedEventKey.Equals(ConsoleFramework.Events.RoutedEventKey)">
+            <summary>
+            Indicates whether the current object is equal to another object of the same type.
+            </summary>
+            <returns>
+            true if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
+            </returns>
+            <param name="other">An object to compare with this object.</param>
+        </member>
+        <member name="M:ConsoleFramework.Events.RoutedEventKey.Equals(System.Object)">
+            <summary>
+            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>.
+            </summary>
+            <returns>
+            true if the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>; otherwise, false.
+            </returns>
+            <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:System.Object"/>. </param><filterpriority>2</filterpriority>
+        </member>
+        <member name="M:ConsoleFramework.Events.RoutedEventKey.GetHashCode">
+            <summary>
+            Serves as a hash function for a particular type. 
+            </summary>
+            <returns>
+            A hash code for the current <see cref="T:System.Object"/>.
+            </returns>
+            <filterpriority>2</filterpriority>
+        </member>
+        <member name="T:ConsoleFramework.Events.RoutedEvent">
+            <summary>
+            Represents event that supports routing through visual tree.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Events.RoutedEvent.HandlerType">
+            <summary>
+            Тип делегата - обработчика события.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Events.RoutedEvent.Name">
+            <summary>
+            Имя события - должно быть уникальным в рамках указанного <see cref="P:ConsoleFramework.Events.RoutedEvent.OwnerType"/>.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Events.RoutedEvent.OwnerType">
+            <summary>
+            Тип владельца события.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Events.RoutedEvent.RoutingStrategy">
+            <summary>
+            Стратегия маршрутизации события.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Native.Libc">
+            <summary>
+            Interops for libc linux library.
+            Used to interoperate with eventfd polling (linux analogue of WaitForMultipleObjects).
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Libc.EINTR">
+            <summary>
+            Interrupted system call. If after poll() error code is EINTR, this means
+            that a signal was caught during poll().
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.Libc.poll(ConsoleFramework.Native.pollfd[],System.Int32,System.Int32)">
+            <summary>
+            See the &lt;sys/poll.h&gt; and &lt;bits/poll.h&gt;
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.Libc.pipe(System.Int32[])">
+            <summary>
+            Creates a pipe object. fds must be initialized array of 2 items.
+            fds[0] will store descriptor for reading
+            fds[1] will store descriptor for writing
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.Libc.eventfd(System.UInt32,ConsoleFramework.Native.EVENTFD_FLAGS)">
+            <summary>
+            Creates the eventfd kernel object. Returns file descriptor for
+            created eventfd object.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.Libc.readInt64(System.Int32,System.UInt64@)">
+            <summary>
+            Used to read from eventfd file descriptor.
+            </summary>
+            <returns>
+            Number of bytes readed or -1 if error has occured.
+            </returns>
+        </member>
+        <member name="M:ConsoleFramework.Native.Libc.writeInt64(System.Int32,System.UInt64)">
+            <summary>
+            Used to write to eventfd file descriptor.
+            </summary>
+            <returns>
+            Number of bytes written or -1 if error has occured.
+            </returns>
+        </member>
+        <member name="M:ConsoleFramework.Native.Libc.close(System.Int32)">
+            <summary>
+            Close the specified file descriptor.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.Libc.ioctl(System.Int32,System.Int32,ConsoleFramework.Native.winsize@)">
+            <summary>
+            Used in terminal size retrieving.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.Libc.GetTerminalSize(System.Boolean)">
+            <summary>
+            Returns actual terminal width and height.
+            </summary>
+            <param name="isDarwin">True if application is executed under Mac OS X.</param>
+            <returns></returns>
+        </member>
+        <member name="T:ConsoleFramework.Native.winsize">
+            <summary>
+            Structure to retrieve terminal size.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Native.LibTermKey">
+            <summary>
+            Interop code for LibTermKey linux library.
+            LibTermKey is used for handling keyboard and mouse input.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Native.NCurses">
+            <summary>
+            Interop code for NCurses linux library. NCurses is used for graphics output only.
+            For keyboard and mouse input LibTermKey library is used.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.initscr">
+            <summary>
+            Returns pointer to the WINDOW struct.
+            If no terms has created manually returns stdscr.
+            stdscr is used to set colors and attributes.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.keypad(System.IntPtr,System.Boolean)">
+            <summary>
+            Enables the keypad of the user's terminal.
+            If enabled, the mouse events will be interpreted as mouse events
+            (prefixed with KEY_MOUSE). Otherwise, mouse events cannot be
+            correctly interpreted (garbage key codes in getch).
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.cbreak">
+            <summary>
+            Enters the cbreak mode (no lines buffering in input).
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.noecho">
+            <summary>
+            Should be called to disable echo.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.nonl">
+            <summary>
+            To avoid that addch('\') affects current symbol position.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.intrflush(System.IntPtr,System.Boolean)">
+            <summary>
+            Set this option to true to avoid problems with keyboard input buffer
+            flushing and inconsistent data displaying.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.curs_set(ConsoleFramework.Native.CursorVisibility)">
+            <summary>
+            Set specified cursor visibility.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.move(System.Int32,System.Int32)">
+            <summary>
+            Moves the cursor associated with the window to line y and column x.
+            This routine does not move the physical cursor of the terminal until refresh is called.
+            The position specified is relative to the upper left-hand corner of the window, which is (0,0).
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.start_color">
+            <summary>
+            We should call this function right after initscr()
+            to enable the color subsystem.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.getStandardColor(System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Returns ncurses standard color for specified rgb combination.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.winAttrsToNCursesAttrs(ConsoleFramework.Native.Attr,System.Boolean@)">
+            <summary>
+            Doesn't support background intensity and other
+            extended windows attributes.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.NCurses.NCURSES_MOUSE_MASK(System.Int32,System.UInt64)">
+            <summary>
+            Поскольку в хедерах ncurses нет информации о типах аргументов,
+            попробуем воспользоваться выводом типов для generic методов.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Native.CursorVisibility">
+            <summary>
+            Cursor visibility for ncurses.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Native.Win32">
+            <summary>
+            Interop code for Win32 environment.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.Win32.GetConsoleMode(System.IntPtr,System.UInt32@)">
+            <summary>
+            Returns current console mode. Program saves it before changing and
+            restores before exit.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Native.Win32.SetConsoleMode(System.IntPtr,System.UInt32)">
+            <summary>
+            It is used to set ENABLE_WINDOW_INPUT flag, which enables the events
+            about console screen buffer resize.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Native.CHAR_INFO">
+            <summary>
+            CharSet.Unicode is required for proper marshaling.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Native.Attr">
+            <summary>
+            CHAR_ATTRIBUTES native structure.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.FOREGROUND_BLUE">
+            <summary>
+            Text color contains blue.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.FOREGROUND_GREEN">
+            <summary>
+            Text color contains green.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.FOREGROUND_RED">
+            <summary>
+            Text color contains red.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.FOREGROUND_INTENSITY">
+            <summary>
+            Text color is intensified.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.BACKGROUND_BLUE">
+            <summary>
+            Background color contains blue.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.BACKGROUND_GREEN">
+            <summary>
+            Background color contains green.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.BACKGROUND_RED">
+            <summary>
+            Background color contains red.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.BACKGROUND_INTENSITY">
+            <summary>
+            Background color is intensified.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.COMMON_LVB_LEADING_BYTE">
+            <summary>
+            Leading byte.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.COMMON_LVB_TRAILING_BYTE">
+            <summary>
+            Trailing byte.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.COMMON_LVB_GRID_HORIZONTAL">
+            <summary>
+            Top horizontal
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.COMMON_LVB_GRID_LVERTICAL">
+            <summary>
+            Left vertical.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.COMMON_LVB_GRID_RVERTICAL">
+            <summary>
+            Right vertical.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.COMMON_LVB_REVERSE_VIDEO">
+            <summary>
+            Reverse foreground and background attribute.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.Attr.COMMON_LVB_UNDERSCORE">
+            <summary>
+            Underscore.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Native.CONSOLE_CURSOR_INFO.Size">
+            <summary>
+            The percentage of the character cell that is filled by the cursor.
+            This value is between 1 and 100. The cursor appearance varies, ranging from completely
+            filling the cell to showing up as a horizontal line at the bottom of the cell.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Native.VirtualKeys">
+            <summary>
+            Enumeration for virtual keys.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Rendering.PhysicalCanvas">
+            <summary>
+            Represents the buffer prepared to output into terminal.
+            Provides indexer-like access to buffer and method <see cref="M:ConsoleFramework.Rendering.PhysicalCanvas.Flush(ConsoleFramework.Core.Rect)"/>.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Rendering.PhysicalCanvas.buffer">
+            <summary>
+            Buffer to marshal between application and Win32 API layer.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Rendering.PhysicalCanvas.cachedIndexers">
+            <summary>
+            Indexers cache to avoid objects creation on every [][] call.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.PhysicalCanvas.Flush">
+            <summary>
+            Writes collected data to console screen buffer.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.PhysicalCanvas.Flush(ConsoleFramework.Core.Rect)">
+            <summary>
+            Writes collected data to console screen buffer, but paints specified rect only.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Rendering.PhysicalCanvas.NestedIndexer">
+            <summary>
+            Flyweight to provide [][]-style access to buffer.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Rendering.PhysicalCanvas.NestedIndexer.CHAR_INFO_ref">
+            <summary>
+            Wrapper to provide reference-style access to struct properties (assignment and change
+            without temporary copying in user code).
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Rendering.Renderer">
+            <summary>
+            Central point of the console framework layout system.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Rendering.Renderer.zOrderCheckControls">
+            <summary>
+            Контролы, в дочерних элементах которого были изменения в порядке Z-Order
+            (только Z-Order, если были добавлены или удалены дочерние - то он автоматически
+            будет invalidated, и в этот список добавлять уже не нужно).
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.Renderer.FinallyApplyChangesToCanvas(System.Boolean)">
+            <summary>
+            Сбрасывает все изменения, накопленные в течение предыдущих вызовов
+            UpdateLayout, на экран.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.Renderer.UpdateLayout">
+            <summary>
+            Пересчитывает лайаут для всех контролов, добавленных в очередь ревалидации.
+            Определяет, какие контролы необходимо перерисовать, вызывает Render у них.
+            Определяет, какие области экрана необходимо обновить и выполняет перерисовку
+            экрана консоли.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.Renderer.refreshChildrenLastOverlappedRects(ConsoleFramework.Controls.Control,System.Boolean)">
+            <summary>
+            Обновляет LastOverlappedRect у всех контролов, которые являются непосредственными
+            детьми parent'a, в соответствии с их Z-Order. Если addToInvalidatedIfChanged = true,
+            то те дочерние элементы, у которых OverlappedRect уменьшился по сравнению с предыдущим
+            значением, будут добавлены в список renderingUpdatedControls.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.Renderer.applyChangesToCanvas(ConsoleFramework.Controls.Control,ConsoleFramework.Core.Rect)">
+            <summary>
+            Получает для указанного контрола full render buffer и применяет его последовательно
+            ко всем родительским элементам управления, вплоть до изображения на экране.
+            Возвращает прямоугольник, необходимый для ревалидации на экране (affected rect).
+            Учитывает Z-Order контролов-соседей (если родительский контрол имеет несколько дочерних, они могут перекрывать
+            друг друга).
+            Первый вызов производится с affectedRect = control.RenderSize.
+            </summary>
+            <returns>Affected rectangle in canvas should be copyied to console screen.</returns>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.Renderer.invalidateLayout(System.Collections.Generic.List{ConsoleFramework.Rendering.Renderer.ControlAffectInfo})">
+            <summary>
+            Пересчитывает лайаут для всех контролов, добавленных в очередь ревалидации.
+            После того, как лайаут контрола рассчитан, выполняется рендеринг.
+            Рендеринг производится только тогда, когда размеры контрола изменились или
+            контрол явно помечен как изменивший свое изображение. В остальных случаях
+            используются кешированные буферы, содержащие уже отрендеренные изображения.
+            </summary>
+            <param name="affectedControls"></param>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.Renderer.addControlToRenderingUpdatedList(ConsoleFramework.Controls.Control)">
+            <summary>
+            Добавляет указанный контрол в список контролов, для которых обновлен full rendering buffer.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.Renderer.getControlOpacityAt(ConsoleFramework.Controls.Control,System.Int32,System.Int32)">
+            <summary>
+            Возващает код прозрачности контрола в указанной точке.
+            Это необходимо для определения контрола, который станет источником события мыши.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.Renderer.ControlRemovedFromTree(ConsoleFramework.Controls.Control)">
+            <summary>
+            Called when control is removed from visual tree.
+            It is necessary to remove it from invalidated queue if they are there.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.Renderer.AddControlToZOrderCheckList(ConsoleFramework.Controls.Control)">
+            <summary>
+            Called when some of control's children changed their z-order.
+            (Not when added or removed - just changed between them).
+            This call allows layout system to detect when need to refresh
+            display image if no controls invalidated but z-order changed.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Rendering.Renderer.RootElementRect">
+            <summary>
+            Прямоугольная область относительно экрана консоли, в которой будет размещён Root Element.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Rendering.RenderingBuffer">
+            <summary>
+            Stores rendered control content.
+            Supports impositioning and opacity mask matrix.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.Rendering.RenderingBuffer.opacityMatrix">
+            <summary> todo : convert to enum
+            0 - непрозрачный пиксель
+            1 - полупрозрачный (отображается как тень)
+            2 - полностью прозрачный (при наложении на другой буфер будет проигнорирован)
+            3 - прозначный фон (при наложении на другой буфер символы возьмут его background) - для рамок на кнопках, к примеру
+            
+            4 - то же, что и 0, но пропускает через себя события мыши
+            5 - то же, что и 1, но пропускает через себя события мыши
+            6 - то же, что и 2, но пропускает через себя события мыши
+            7 - то же, что и 3, но пропускает через себя события мыши
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.RenderingBuffer.ApplyChild(ConsoleFramework.Rendering.RenderingBuffer,ConsoleFramework.Core.Vector,ConsoleFramework.Core.Size,ConsoleFramework.Core.Rect,ConsoleFramework.Core.Rect)">
+            <summary>
+            Накладывает буфер дочернего элемента на текущий. Дочерний буфер виртуально накладывается на текущий
+            в соответствии с переданным actualOffset, а потом та часть дочернего буфера, которая попадает в 
+            renderSlotRect, прорисовывается. renderSlotRect определен отн-но текущего буфера (а не дочернего).
+            layoutClip определяет, какая часть дочернего буфера будет прорисована в текущий буфер (клиппинг,
+            возникающий при применении Margin и Alignment'ов).
+            </summary>
+            <param name="childBuffer"></param>
+            <param name="actualOffset">Смещение буфера дочернего элемента относительно текущего.</param>
+            <param name="childRenderSize">Размер отрендеренного дочерним элементом контента - может
+            быть меньше размера childBuffer, поэтому нужно передавать явно.</param>
+            <param name="renderSlotRect">Размер и положение слота, выделенного дочернему элементу.</param>
+            <param name="layoutClip">Часть дочернего буфера, которая будет отрисована - по размеру может быть
+            меньше или равна RenderSlotRect.Size. По координатам соотносится с childBuffer.</param>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.RenderingBuffer.ApplyChild(ConsoleFramework.Rendering.RenderingBuffer,ConsoleFramework.Core.Vector,ConsoleFramework.Core.Size,ConsoleFramework.Core.Rect,ConsoleFramework.Core.Rect,System.Nullable{ConsoleFramework.Core.Rect})">
+            <summary>
+            Оверлоад для оптимизированного наложения в случае, когда известно, что в дочернем
+            контроле поменялась лишь часть, идентифицируемая параметром affectedRect.
+            Будет обработана только эта часть дочернего контрола, и количество операций уменьшится.
+            </summary>
+            <param name="childBuffer"></param>
+            <param name="actualOffset"></param>
+            <param name="childRenderSize"></param>
+            <param name="renderSlotRect"></param>
+            <param name="layoutClip"></param>
+            <param name="affectedRect">Прямоугольник в дочернем контроле, который был изменен.</param>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.RenderingBuffer.CopyToPhysicalCanvas(ConsoleFramework.Rendering.PhysicalCanvas,ConsoleFramework.Core.Rect,ConsoleFramework.Core.Point)">
+            <summary>
+            Копирует affectedRect из буфера на экран консоли с учетом того, что буфер
+            находится на экране консоли по смещению offset.
+            </summary>
+            <param name="canvas"></param>
+            <param name="affectedRect">Измененная область относительно this.</param>
+            <param name="offset">В какой точке экрана размещен контрол (см <see cref="P:ConsoleFramework.Rendering.Renderer.RootElementRect"/>).</param>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.RenderingBuffer.Clear">
+            <summary>
+            Renderer should call this method before any control render.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.RenderingBuffer.ContainsOpacity(ConsoleFramework.Core.Rect)">
+            <summary>
+            Проверяет, содержит ли affectedRect пиксели с выставленным значением opacity.
+            Это необходимо для обеспечения корректного смешивания с родительскими буферами в случае
+            частичного обновления экрана (если это не учитывать, то состояние экрана может смешивать
+            новые пиксели со старыми, которые были получены при предыдущем вызове рендеринга).
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.Rendering.RenderingBuffer.GetOpacityAt(System.Int32,System.Int32)">
+            <summary>
+            Возвращает код прозрачности в указанной точке.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Xaml.BindingMarkupExtension.Converter">
+            <summary>
+            Converter to be used.
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.Xaml.ConvertMarkupExtension">
+            <summary>
+            Converts Value to property type using specified converter.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Xaml.ConvertMarkupExtension.Converter">
+            <summary>
+            Converter to be used.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.Xaml.ConvertMarkupExtension.Value">
+            <summary>
+            Value to convert. String or any object (if created using nested markup extension).
+            </summary>
+        </member>
+        <member name="T:ConsoleFramework.ConsoleApplication">
+            <summary>
+            Console application entry point.
+            Encapsulates messages loop and application lifecycle.
+            Supports Windows and Linux.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.Maximize">
+            <summary>
+            Maximizes the terminal window size and terminal buffer size.
+            Current size is stored.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.Restore">
+            <summary>
+            Restores the terminal window size and terminal buffer to stored state.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.OnTerminalSizeChangedDefault(System.Object,ConsoleFramework.TerminalSizeChangedEventArgs)">
+            <summary>
+            Default TerminalSizeChanged event handler. Invoked when
+            initial CanvasSize and RootElementRect are empty and no another
+            TerminalSizeChanged handler is attached.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.Exit">
+            <summary>
+            Signals the message loop to be finished.
+            Application shutdowns after that.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.ShowCursor">
+            <summary>
+            Делает курсор консоли видимым и устанавливает значение CursorIsVisible в true.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.HideCursor">
+            <summary>
+            Делает курсор консоли невидимым и устанавливает значение
+            CursorIsVisible в false.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.Run(ConsoleFramework.Controls.Control)">
+            <summary>
+            Runs application using specified control as root control.
+            Application will run until method <see cref="M:ConsoleFramework.ConsoleApplication.Exit"/> is called.
+            </summary>
+            <param name="control"></param>
+        </member>
+        <member name="F:ConsoleFramework.ConsoleApplication.pipeFds">
+            <summary>
+            File descriptors for self-pipe.
+            First descriptor is used to read from pipe, second - to write.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.IsUiThread">
+            <summary>
+            Checks if current thread is same thread from which Run() method
+            was called.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.RunOnUiThread(System.Action)">
+            <summary>
+            Invokes action in UI thread synchronously.
+            If run loop was not started yet, nothing will be done.
+            </summary>
+            <param name="action"></param>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.Post(System.Action)">
+            <summary>
+            Invokes action in main loop thread asynchronously.
+            If run loop was not started yet, nothing will be done.
+            </summary>
+        </member>
+        <member name="F:ConsoleFramework.ConsoleApplication.activeTimers">
+            <summary>
+            This structure is required to avoid active timer to be collected by GC
+            before action execution.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.Post(System.Action,System.TimeSpan)">
+            <summary>
+            Invokes action in main loop thread (UI thread) asynchronously and after delay.
+            If run loop will not start to delayed time, nothing will be done.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.BeginCaptureInput(ConsoleFramework.Controls.Control)">
+            <summary>
+            Начинает захват мыши и маршрутизируемых событий
+            указанным элементом управления. После этого контрол принимает все события от мыши
+            в качестве источника события (вне зависимости от позиции курсора мыши), а все маршрутизируемые
+            события передаются только в этот контрол и к его потомкам.
+            Используется, например, при обработке клика на кнопке - после нажатия ввод захватывается, и
+            события приходят только в кнопку. Когда пользователь отпускает кнопку мыши, захват прекращается.
+            </summary>
+        </member>
+        <member name="M:ConsoleFramework.ConsoleApplication.EndCaptureInput(ConsoleFramework.Controls.Control)">
+            <summary>
+            Завершает захват мыши и маршрутизируемых событий.
+            </summary>
+        </member>
+        <member name="E:ConsoleFramework.ConsoleApplication.TerminalSizeChanged">
+            <summary>
+            Fires when console buffer size is changed.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.ConsoleApplication.CanvasSize">
+            <summary>
+            Gets or sets a size of canvas. Whet set, old canvas image will be
+            copied to new one.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.ConsoleApplication.RootElementRect">
+            <summary>
+            Gets or sets the root element rect.
+            When set, root element will be added to invalidation queue automatically.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.ConsoleApplication.Instance">
+            <summary>
+            Instance of Application object.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.ConsoleApplication.RootControl">
+            <summary>
+            Returns the root control of the application.
+            </summary>
+        </member>
+        <member name="P:ConsoleFramework.ConsoleApplication.CursorIsVisible">
+            <summary>
+            Состояние курсора консоли для избежания повторных вызовов Show и Hide.
+            Консистентность этого свойства может быть нарушена, если пользоваться в приложении
+            нативными функциями для работы с курсором напрямую.
+            </summary>
+        </member>
+    </members>
+</doc>

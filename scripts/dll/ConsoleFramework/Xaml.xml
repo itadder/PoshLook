@@ -1,0 +1,363 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Xaml</name>
+    </assembly>
+    <members>
+        <member name="T:Xaml.ContentPropertyAttribute">
+            <summary>
+            Attribute to specify name of content property of any type to be created
+            and configured using XAML if that type supports content abstraction.
+            If no attribute found at type, "Content" property will be used.
+            </summary>
+        </member>
+        <member name="T:Xaml.IFactory">
+            <summary>
+            Примитивные типы, такие как строки, целые числа, - могут быть заданы в XAML
+            отдельным тегом. Но так как у примитивов нет свойств и Content-свойства тем более,
+            то для удобства написания парсера задание таких примитивов производится через обёртки.
+            Класс-обёртка имеет свойство соответствующего примитивного типа, пользователь задаёт его
+            в XAML, а при обработке парсер видит, что это именно IFactory-объект, и вместо самого
+            объекта подставляет результат вызова метода GetObject(). В результате в родительский объект
+            приходит значение примитива, которое можно задавать различными способами (в том числе
+            и с использованием расширений разметки).
+            </summary>
+        </member>
+        <member name="T:Xaml.Primitive`1">
+            <summary>
+            Available in XAML markup as "string", "int", "double",
+            "float", "char", "bool" elements.
+            </summary>
+        </member>
+        <member name="T:Xaml.ObjectFactory">
+            <summary>
+            Allows to construct an object of a specified type, with specified constructor
+            arguments and properties values. In XAML it can be used with convenient alias "object".
+            You can read documentation to find usage examples.
+            </summary>
+        </member>
+        <member name="M:Xaml.ObjectFactory.InsertionSort``1(System.Collections.Generic.IList{``0},System.Comparison{``0})">
+            <summary>
+            Simple stable sorting implementation.
+            http://www.csharp411.com/c-stable-sort/
+            todo : remove after JSIL OrderBy linq will be implemented
+            </summary>
+        </member>
+        <member name="P:Xaml.ObjectFactory.TypeName">
+            <summary>
+            Full type name, with generics allowed like this:
+            System.Collections.Generic.Dictionary`2[System.String,MyType]
+            View Type.GetType(string name) method documentation to find syntax examples.
+            </summary>
+        </member>
+        <member name="T:Xaml.ITypeConverter">
+            <summary>
+            Provides a unified way of converting types of values to other types,
+            as well as for accessing standard values and subproperties.
+            </summary>
+        </member>
+        <member name="M:Xaml.ITypeConverter.CanConvertFrom(System.Type)">
+            <summary>
+            Returns whether this converter can convert an object of one
+            type to the type of this converter.
+            </summary>
+        </member>
+        <member name="M:Xaml.ITypeConverter.CanConvertTo(System.Type)">
+            <summary>
+            Returns whether this converter can convert the object to the specified type.
+            </summary>
+        </member>
+        <member name="M:Xaml.ITypeConverter.ConvertFrom(System.Object)">
+            <summary>
+            Converts the given value to the type of this converter.
+            </summary>
+        </member>
+        <member name="M:Xaml.ITypeConverter.ConvertTo(System.Object,System.Type)">
+            <summary>
+            Converts the given value object to the specified type.
+            </summary>
+        </member>
+        <member name="T:Xaml.MarkupExtensionAttribute">
+            <summary>
+            Attribute marks the markup extensions and specifies the names
+            by which they will be available in XAML.
+            </summary>
+        </member>
+        <member name="T:Xaml.IFixupToken">
+            <summary>
+            Marker of fixup token - object can be returned from
+            markup extension context. Token allows to resolve forward references in XAML.
+            </summary>
+        </member>
+        <member name="T:Xaml.IMarkupExtensionContext">
+            <summary>
+            Контекст, доступный расширению разметки.
+            </summary>
+        </member>
+        <member name="M:Xaml.IMarkupExtensionContext.GetObjectById(System.String)">
+            <summary>
+            Returns already created object with specified x:Id attribute value or null if object with
+            this x:Id is not constructed yet. To resolve forward references use fixup tokens mechanism.
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Xaml.IMarkupExtensionContext.GetFixupToken(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Returns an object that can correct for certain markup patterns that produce forward references.
+            </summary>
+            <param name="ids">A collection of ids that are possible forward references.</param>
+            <returns>An object that provides a token for lookup behavior to be evaluated later.</returns>
+        </member>
+        <member name="P:Xaml.IMarkupExtensionContext.PropertyName">
+            <summary>
+            Имя свойства, которое определяется при помощи расширения разметки.
+            </summary>
+        </member>
+        <member name="P:Xaml.IMarkupExtensionContext.Object">
+            <summary>
+            Ссылка на конфигурируемый объект.
+            </summary>
+        </member>
+        <member name="P:Xaml.IMarkupExtensionContext.DataContext">
+            <summary>
+            Возвращает активный для конфигурируемого объекта DataContext.
+            Если у текущего конфигурируемого объекта нет собственного DataContext'a,
+            будет взят контекст объекта выше по иерархии контролов, и так до главного элемента
+            дерева контролов.
+            </summary>
+        </member>
+        <member name="P:Xaml.IMarkupExtensionContext.IsFixupTokenAvailable">
+            <summary>
+            Gets a value that determines whether calling GetFixupToken is available
+            in order to resolve a name into a token for forward resolution.
+            </summary>
+        </member>
+        <member name="T:Xaml.IMarkupExtension">
+            <summary>
+            todo : comment
+            </summary>
+        </member>
+        <member name="M:Xaml.IMarkupExtension.ProvideValue(Xaml.IMarkupExtensionContext)">
+            <summary>
+            If ProvideValue returns null, it will not be assigned to object property.
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Xaml.MarkupExtensionsParser.processWhitespace(System.Boolean)">
+            <summary>
+            Consumes all whitespace characters. If necessary is true, at least one
+            whitespace character should be consumed.
+            </summary>
+        </member>
+        <member name="M:Xaml.MarkupExtensionsParser.processMarkupExtensionCore(Xaml.IMarkupExtensionContext)">
+            <summary>
+            Recursive method. Consumes next characters as markup extension definition.
+            Resolves type, ctor arguments and properties of markup extension,
+            constructs and initializes it, and returns ProvideValue method result.
+            </summary>
+            <param name="context">Context object passed to ProvideValue method.</param>
+        </member>
+        <member name="M:Xaml.MarkupExtensionsParser.construct(System.Type,System.Collections.Generic.List{System.Object})">
+            <summary>
+            Constructs object of specified type using specified ctor arguments list.
+            </summary>
+        </member>
+        <member name="M:Xaml.MarkupExtensionsParser.processString">
+            <summary>
+            Возвращает строку, в которой могут содержаться любые символы кроме {},=.
+            Как только встречается один из этих символов без экранирования обратным слешем,
+            парсинг прекращается.
+            </summary>
+        </member>
+        <member name="T:Xaml.RefMarkupExtension">
+            <summary>
+            Returns an object that is referenced in expression. Example:
+            {Ref myObject} will return object with x:Id="myObject".
+            Forward-references are supported too.
+            </summary>
+        </member>
+        <member name="P:Xaml.RefMarkupExtension.Ref">
+            <summary>
+            String reference to ID of object to be used.
+            </summary>
+        </member>
+        <member name="T:Xaml.TypeConverterAttribute">
+            <summary>
+            Specifies type of converter to be used to convert from or to current type.
+            </summary>
+        </member>
+        <member name="T:Xaml.TypeMarkupExtension">
+            <summary>
+            Позволяет получить тип по имени. Имя может содержать аргументы-типы, например
+            ConsoleFramework.Xaml.TestClass`1[System.String]
+            </summary>
+        </member>
+        <member name="T:Xaml.XamlParser">
+            <summary>
+            Provides XAML parsing and simultaneous object graph creation.
+            </summary>
+        </member>
+        <member name="M:Xaml.XamlParser.CreateFromXaml``1(System.String,System.Object,System.Collections.Generic.List{System.String})">
+            <summary>
+            <para>Creates the object graph using provided xaml and dataContext.</para>
+            <para>DataContext will be passed to markup extensions and can be null if you don't want to
+            use binding markup extensions.</para>
+            <para>Default namespaces are used to search types (by tag name) and
+            markup extensions (all classes marked with MarkupExtensionAttribute are scanned).
+            If don't specify default namespaces, you should specify namespaces (with prefixes)
+            explicitly in XAML root element.</para>
+            <para>Example of defaultNamespaces item:</para>
+            <para><code>clr-namespace:TestProject1.Xaml.EnumsTest;assembly=TestProject1</code></para>
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="xaml">Xaml markup</param>
+            <param name="dataContext">Object that will be passed to markup extensions</param>
+            <param name="defaultNamespaces">Namespaces can be used without explicit prefixes</param>
+            <returns></returns>
+        </member>
+        <member name="M:Xaml.XamlParser.processText(System.String,System.String,System.Object,System.Object)">
+            <summary>
+            Если str начинается с одинарной открывающей фигурной скобки, то метод обрабатывает его
+            как вызов расширения разметки, и возвращает результат, или выбрасывает исключение,
+            если при парсинге или выполнении возникли ошибки. Если же str начинается c комбинации
+            {}, то остаток строки возвращается просто строкой.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.objects">
+            <summary>
+            Стек конфигурируемых объектов. На верху стека всегда лежит
+            текущий конфигурируемый объект.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.objectsById">
+            <summary>
+            Map { x:Id -> object } of fully configured objects available to reference from
+            markup extensions.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.fixupTokens">
+            <summary>
+            List of fixup tokens used to defer objects by id resolving if markup extension
+            has forward references to objects declared later.
+            </summary>
+        </member>
+        <member name="M:Xaml.XamlParser.createFromXaml(System.String,System.Object)">
+            <summary>
+            Creates the object graph using provided xaml.
+            </summary>
+            <param name="xaml"></param>
+            <param name="dataContext"></param>
+            <returns></returns>
+        </member>
+        <member name="F:Xaml.XamlParser.aliases">
+            <summary>
+            Алиасы для объектов-примитивов, чтобы не писать в XAML длинные формулировки вида
+            &lt;xaml:Primitive x:TypeArg1="{Type System.Double}"&gt;&lt;/xaml:Primitive&gt;
+            </summary>
+        </member>
+        <member name="M:Xaml.XamlParser.processEndElement">
+            <summary>
+            Finishes configuring current object and assigns it to property of parent object.
+            </summary>
+        </member>
+        <member name="M:Xaml.XamlParser.ConvertValueIfNeed(System.Type,System.Type,System.Object)">
+            <summary>
+            Converts the value from source type to destination if need
+            using default conversion strategies and registered type converters.
+            </summary>
+            <param name="source">Type of source value</param>
+            <param name="dest">Type of destination</param>
+            <param name="value">Source value</param>
+        </member>
+        <member name="M:Xaml.XamlParser.resolveType(System.String)">
+            <summary>
+            Принимает на вход название типа и возвращает объект Type, ему соответствующий.
+            Название типа может быть как с префиксом (qualified), так и без него.
+            Если название типа содержит префикс, то поиск будет осуществляться в соответствующем
+            объявленном clr-namespace. Если же название префикса не содержит, поиск будет
+            выполняться в наборе пространств имён по умолчанию (defaultNamespaces), которые
+            задаются в конструкторе класса XamlParser.
+            </summary>
+        </member>
+        <member name="M:Xaml.XamlParser.getNamespacesToScan(System.String,System.String@)">
+            <summary>
+            Returns list of namespaces to scan for name.
+            If name is prefixed, namespaces will be that was registered for this prefix.
+            If name is without prefix, default namespaces will be returned.
+            </summary>
+        </member>
+        <member name="P:Xaml.XamlParser.Top">
+            <summary>
+            Возвращает текущий конфигурируемый объект или null, если такового нет.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.ObjectInfo.type">
+            <summary>
+            Тип конструируемого объекта.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.ObjectInfo.obj">
+            <summary>
+            Объект (или null если создаётся String).
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.ObjectInfo.currentProperty">
+            <summary>
+            Текущее свойство, которое задаётся тегом с точкой в имени.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.ObjectInfo.currentPropertyText">
+            <summary>
+            Задаётся при парсинге тегов, содержимое которых - текст.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.ObjectInfo.key">
+            <summary>
+            Ключ, задаваемый атрибутом x:Key (если есть) - по этому ключу объект будет
+            положен в Dictionary-свойство родительского объекта.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.ObjectInfo.id">
+            <summary>
+            Ключ, задаваемый атрибутом x:Id (если есть). По этому ключу объект будет
+            доступен из расширений разметки по ссылкам (например, через Ref).
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.FixupToken.Expression">
+            <summary>
+            Строковое представление расширения разметки, которое вернуло этот токен.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.FixupToken.PropertyName">
+            <summary>
+            Имя свойства, которое задано этим расширением разметки.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.FixupToken.Object">
+            <summary>
+            Объект, свойство которого определяется расширением разметки.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.FixupToken.DataContext">
+            <summary>
+            Переданный в расширение разметки dataContext.
+            </summary>
+        </member>
+        <member name="F:Xaml.XamlParser.FixupToken.Ids">
+            <summary>
+            Список x:Id, которые не были найдены в текущем состоянии графа объектов,
+            но которые необходимы для полного выполнения ProvideValue.
+            </summary>
+        </member>
+        <member name="P:Xaml.XamlParser.MarkupExtensionContext.IsFixupTokenAvailable">
+            <summary>
+            fixupTokensAvailable = true означает, что парсинг ещё не закончен, и ещё можно
+            создать FixupToken, false означает, что парсинг уже завершён, и новых объектов
+            уже не появится, поэтому если расширение разметки не может обнаружить ссылку на
+            объект, то ему уже нечего делать, кроме как завершать работу выбросом исключения.
+            </summary>
+        </member>
+    </members>
+</doc>
