@@ -98,27 +98,7 @@ function Enter-PoshLookSession {
                         }
                     }
                     Button = $null
-                }<#,
-                @{
-                    Name = 'OpenFolder'
-                    Config = @{
-                        Text = "View-Inbox-Folder"
-                        Width = 25
-                        TopPadding = 4
-                        LeftPadding = 34
-                        ClickAction = {
-                            #$List2Item = [system.collections.arraylist]::new()
-                            $Dialogs[0].Dialog.Hide();
-                            $Dialogs[1].Dialog.Show();
-                            $selection = $Dialogs[0].Lists[0].List.SelectedItem
-                            (Get-EWSFolder -Path "MsgFolderRoot\$selection").FindItems(156).Subject | %{
-                                $Dialogs[1].Lists[0].List.Items.Add($_)
-                            }
-                        }
-                    }
-                    Button = $null
                 }
-                #>
             )
         },
         @{
@@ -209,21 +189,9 @@ function Enter-PoshLookSession {
     
 
     #$selection = $list.SelectedItem
-    #$list.Keypress() -eq $true
-    #[system.consolekeyinfo]::new('A',[System.ConsoleKey]::A,$false,$false,$false)
-    #$selection
-
-    #$Dialogs
-    
     #$selection2 = $list2.SelectedItem
-    #$list2.Keypress() -eq $true
-    #$selection2
-
-    #$inbox = Get-EWSFolder -Path $selection  |  Get-EWSItem -Filter * 
-        #$listadd2 = $inbox | ForEach-Object {$list2.items.add($_)}
-
+    
+	
     # run cli gui
     $RootWindow.Run()
 }
-
-#Enter-PoshLookSession -Mailbox 'schu@integrity-apps.com' -AllowRedirect -Credential (Get-StoredCredential -CredName Self)
