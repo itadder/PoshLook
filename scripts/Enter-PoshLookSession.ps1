@@ -25,205 +25,103 @@ function Enter-PoshLookSession {
         Connect-EWSService @SelectedParams
     }
 
-    #dll loading
-    #Import-Module "$PSScriptRoot\dll\CLRCLI-Master\CLRCLI-master\CLRCLI\bin\Debug\CLRCLI.dll"
-   
-    #create root base
-    $RootWindow = [CLRCLI.Widgets.RootWindow]::new()
-    
-    #Define Dialog boxes
-    $Dialogs = @(
-        @{
-            Name = 'FolderSelect'
-            Config = @{
-                Parent = $RootWindow
-                Text = "PoshLook [Mail,Contacts,Calendar,Tasks]"
-                Visible = $true
-            }
-            Dialog = $null
-            Labels = @(
-                @{
-                    Name = 'Label1'
-                    Config = @{
-                        Text = "Posh Look E-mail Folders"
-                        TopPadding = 2
-                        LeftPadding = 2
-                    }
-                    Label = $null
-                }
-            )
-            Lists = @(
-                @{
-                    Name = 'Folders'
-                    Config = @{
-                        TopPadding = 10
-                        LeftPadding = 4
-                        Width = 32
-                        Height = 6
-                        Border = 'Thin'
-                        ClickAction = {
-                            $Dialogs[0].Dialog.Hide();
-                            $Dialogs[1].Dialog.Show();
-                            $selection = $Dialogs[0].Lists[0].List.SelectedItem
-                            $script:emails = (Get-EWSFolder -Path "MsgFolderRoot\$selection").FindItems(156)
-                            $script:emails.Subject | %{
-                                $Dialogs[1].Lists[0].List.Items.Add($_)
-                            }
-                        }
-                    }
-                    List = $null
-                }
-            )
-            Buttons = @(
-                @{
-                    Name = 'ShowMail'
-                    Config = @{
-                        Text = 'Show-MailFolder'
-                        Width = 25
-                        TopPadding = 4
-                        LeftPadding = 6
-                        ClickAction = { 
-                            $listitem = [system.collections.arraylist]::new()
-                            (Get-EWSFolder -Path MsgFolderRoot).FindFolders([int]::MaxValue) | ?{$_.FolderClass -eq 'IPF.Note'} | %{
-                                [void]$listitem.Add($_.DisplayName)
-                                <#
-                                if ($_.ChildFolderCount){
-                                    [void]$listitem.Add("($($_.ChildFolderCount))")
-                                }
-                                #>
-                                $Dialogs[0].Lists[0].List.items.add($listitem -join ' ')
-                                $Dialogs[0].Lists[0].List.SetFocus()
-                                $listitem.Clear()
-                            }
-                        }
-                    }
-                    Button = $null
-                }<#,
-                @{
-                    Name = 'OpenFolder'
-                    Config = @{
-                        Text = "View-Inbox-Folder"
-                        Width = 25
-                        TopPadding = 4
-                        LeftPadding = 34
-                        ClickAction = {
-                            #$List2Item = [system.collections.arraylist]::new()
-                            $Dialogs[0].Dialog.Hide();
-                            $Dialogs[1].Dialog.Show();
-                            $selection = $Dialogs[0].Lists[0].List.SelectedItem
-                            (Get-EWSFolder -Path "MsgFolderRoot\$selection").FindItems(156).Subject | %{
-                                $Dialogs[1].Lists[0].List.Items.Add($_)
-                            }
-                        }
-                    }
-                    Button = $null
-                }
-                #>
-            )
-        },
-        @{
-            Name = 'FolderView'
-            Config = @{
-                Parent = $RootWindow
-                #Text = $selection
-                Text = "view Inbox"
-                Width = 150
-                Height = 32
-                TopPadding = 6
-                LeftPadding = 6
-                BorderStyle = 'Thick'
-            }
-            Dialog = $null
-            Labels = @()
-            Lists = @(
-                @{
-                    Name = 'Emails'
-                    Config = @{
-                        TopPadding = 10
-                        LeftPadding = 4
-                        Width = 100
-                        height = 6
-                        Border = 'Thin'
-                        ClickAction = {
-                            $Dialogs[1].Lists[1].List.Items.Clear()
-                            $selection = $Dialogs[1].Lists[0].List.SelectedItem
-                            $SelectedEmail = $script:emails | ?{$_.Subject -eq $selection}
-                            $SelectedEmailBody = ((( Get-EWSMessage -id ($SelectedEmail.id | select -first 1) | select -ExpandProperty BodyText ) -replace '<[^>]+>','') -split "`r`n") | %{if($_){wrapText -text $_}else{$_}}
+	$AppInstance = [ConsoleFramework.ConsoleApplication]::Instance;
+	$Window = [ConsoleFramework.Controls.Window]::new()
+	$Window.Margin.Left = 2
+	$Window.Margin.Right = 2
+	$Window.Margin.Top = 2
+	$Window.Margin.Bottom = 2
+	$Window.Height = 15
+	$window.Width = 20
 
-                            $ErrorActionPreference = "SilentlyContinue"
-                            $SelectedEmailBody | select -first 155 | %{
-                                $Dialogs[1].Lists[1].List.Items.Add($_)
-                            }
-                            $ErrorActionPreference = "Continue"
-                        }
-                    }
-                    List = $null
-                },
-                @{
-                    Name = 'Email Preview'
-                    Config = @{
-                        TopPadding = 20
-                        LeftPadding = 10
-                        Width = 100
-                        height = 8
-                        Border = 'Thin'
-                    }
-                    List = $null
-                }
-            )
-            Buttons = @(
-                @{
-                    Name = 'Exit'
-                    Config = @{
-                        Text = "Exit"
-                        Width = 8
-                        Height = 3
-                        TopPadding = 30
-                        LeftPadding = 5
-                        ClickAction = {$RootWindow.Detach()}
-                    }
-                    Button = $null
-                }
-            )
-        }
-    )
+	$FolderList = [ConsoleFramework.Controls.ListBox]::new()
+	$FolderList.Name = 'Email Folders'
 
-    #Executing configuration
-    $Dialogs | %{
-        $ThisConfig = $_.Config
-        $_.Dialog = New-CLIDialog @ThisConfig
-        $ThisDialog = $_.Dialog
-        $_.Labels | %{
-            $ThisLabel = $_.Config
-            $_.Label = New-CLILabel @ThisLabel -Parent $ThisDialog
-        }
-        $_.Lists | %{
-            $ThisList = $_.Config
-            $_.List = New-CLIList @ThisList -Parent $ThisDialog
-        }
-        $_.Buttons | %{
-            $ThisButton = $_.Config
-            $_.Button = New-CLIButton @ThisButton -Parent $ThisDialog
-        }
-    }
-    
+	$WindowHost = [ConsoleFramework.Controls.WindowsHost]::new();
+	$WindowHost.MainMenu = [ConsoleFramework.Controls.Menu]::new();
+	$WindowHost.MainMenu.HorizontalAlignment = 'Center';
 
-    #$selection = $list.SelectedItem
-    #$list.Keypress() -eq $true
-    #[system.consolekeyinfo]::new('A',[System.ConsoleKey]::A,$false,$false,$false)
-    #$selection
+	$MainMenu = @(
+		@{
+			Name = 'File'
+			Title = '_File'
+			Gesture = 'Alt+F'
+			Items = @(
+				@{
+					Name = 'Open'
+					Title = '_Open'
+					#Click = {}
+				},@{
+					Name = 'Exit'
+					Title = 'E_xit'
+					Click = {$AppInstance.Exit()}
+				}
+			)
 
-    #$Dialogs
-    
-    #$selection2 = $list2.SelectedItem
-    #$list2.Keypress() -eq $true
-    #$selection2
+		},@{
+			Name = 'Edit'
+			Title = '_Edit'
+			Gesture = 'Alt+E'
+			#Click = {}
+		},@{
+			Name = 'Options'
+			Title = '_Options'
+			Gesture = 'Alt+O'
+			#Click = {}
+		}
+	)
 
-    #$inbox = Get-EWSFolder -Path $selection  |  Get-EWSItem -Filter * 
-        #$listadd2 = $inbox | ForEach-Object {$list2.items.add($_)}
+	$MainMenu | %{
+		$ThisMenuItem = [ConsoleFramework.Controls.MenuItem]::new()
+		$ThisMenuItem.Title = $_.Title
+		$ThisMenuItem.Name = $_.Name
 
-    # run cli gui
-    $RootWindow.Run()
+		if ($_.Click){
+			$ThisMenuItem.Add_Click($_.Click)
+		}
+		if ($_.Items){
+			$ThisMenuItem.Type = 'Submenu'
+			$_.Items | %{
+				$ThisSubmenuItem = [ConsoleFramework.Controls.MenuItem]::new()
+				$ThisSubmenuItem.Title = $_.Title
+				$ThisSubmenuItem.Name = $_.Name
+				if ($_.Click){
+					$ThisSubmenuItem.Add_Click($_.Click)
+				}
+				$ThisMenuItem.Items.Add($ThisSubmenuItem)
+			}
+		}
+
+		$WindowHost.MainMenu.Items.Add(
+			$ThisMenuItem
+		)
+	}
+
+
+	$WindowGrid = [ConsoleFramework.Controls.Grid]::new()
+
+	(Get-EWSFolder -Path MsgFolderRoot).FindFolders([int]::MaxValue) | ?{$_.FolderClass -eq 'IPF.Note'} | %{
+		$FolderList.Items.Add($_.DisplayName)
+	}
+
+	$ThisColumn = [ConsoleFramework.Controls.ColumnDefinition]::new()
+	$ThisColumn.MinWidth = 15
+	$ThisColumn.MaxWidth = [int]::MaxValue
+
+	$($ThisColumn) | %{
+		$WindowGrid.ColumnDefinitions.Add($_);
+	}
+
+	$ThisRow = [ConsoleFramework.Controls.RowDefinition]::new()
+	$ThisRow.MaxHeight = [int]::MaxValue
+	$ThisRow.MinHeight = 20
+	
+	$WindowGrid.RowDefinitions.Add($ThisRow)
+	$WindowGrid.Controls.Add($FolderList)
+
+	$Window.Content = $WindowGrid;
+	$WindowHost.Show($Window);
+
+
+	cls;$AppInstance.Run($WindowHost);
 }
-
-#Enter-PoshLookSession -Mailbox 'schu@integrity-apps.com' -AllowRedirect -Credential (Get-StoredCredential -CredName Self)
