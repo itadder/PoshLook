@@ -28,7 +28,7 @@ function Enter-PoshLookSession {
 
         $TreeConfig = @{
             Name = 'Email Folders'
-			Margin = @{Top=2;Bottom=2;Left=2;Right=2}
+			Margin = @{Top=1;Bottom=1;Left=1;Right=1}
 			HorizontalAlignment = 'Stretch' 
 			VerticalAlignment = 'Top'
             Items = {
@@ -42,13 +42,19 @@ function Enter-PoshLookSession {
 			}
         }
 
-        $FolderContents = @{
+        $FolderConfig = @{
             Name = 'FolderContents'
             Items = {
-				(Get-EWSFolder -Path "MsgFolderRoot\Inbox").FindItems([int]::MaxValue) | Select -ExpandProperty Subject -First 10
-				@('asdfasdf','asdfasdfasfdasf','q5r42353454')
+				(Get-EWSFolder -Path "MsgFolderRoot\Inbox").FindItems([int]::MaxValue) | Select -ExpandProperty Subject
 			}
         }
+
+		$EmailConfig = @{
+            Name = 'EmailContents'
+            Items = $null
+        }
+
+		$Debounce = [datetime]::Now
 
         $WindowConfig = @{
             Title = 'Poshlook'
@@ -58,29 +64,88 @@ function Enter-PoshLookSession {
             HorizontalAlignment = 'Stretch'
             VerticalAlignment = 'Stretch'
             Margin = New-Object ConsoleFramework.Core.Thickness -Property @{
-                Top = 2
-                Bottom = 2
-                Left = 2
-                Right = 2
+                Top = 1
+                Bottom = 1
+                Left = 1
+                Right = 1
             }
             Content = $(
 				
                 $TreeConfig.Items = . $TreeConfig.Items
-				$FolderContents.Items = . $FolderContents.Items
+				$FolderConfig.Items = . $FolderConfig.Items
                 #$FolderList = New-CFList @FolderConfig
-                $FolderContents = New-CFList @FolderContents
+				$FolderScroll = New-Object ConsoleFramework.Controls.ScrollViewer -Property @{
+					MaxHeight = 25
+					Width = 60
+					Margin = New-Object ConsoleFramework.Core.Thickness -Property @{
+						Top = 1
+						Bottom = 1
+						Left = 1
+						Right = 1
+					}
+					VerticalAlignment = 'Top'
+				}
+				$EmailScroll = New-Object ConsoleFramework.Controls.ScrollViewer -Property @{
+					MaxHeight = 25
+					Width = 60
+					Margin = New-Object ConsoleFramework.Core.Thickness -Property @{
+						Top = 1
+						Bottom = 1
+						Left = 1
+						Right = 1
+					}
+					VerticalAlignment = 'Top'
+				}
+                $FolderContents = New-CFList @FolderConfig
+				$EmailContents = New-CFList @EmailConfig
 				$TreeView = New-CFTreeView @TreeConfig
 				$TreeView.Add_PropertyChanged({
-					$FolderContents.Items.Clear()
-					(Get-EWSFolder -Path "MsgFolderRoot\$($TreeView.SelectedItem.Title)").FindItems([int]::MaxValue) | Select -ExpandProperty Subject -First 10 | % {
-						$FolderContents.Items.Add($_)
+					$FolderScroll.Height = $TreeView.ActualHeight
+					$FolderScroll.Width = $TreeView.ActualWidth * 2.5
+					$FolderScroll.Content.MinWidth = $TreeView.ActualWidth * 2.5
+					$EmailScroll.Height = $TreeView.ActualHeight
+					$EmailScroll.Width = $TreeView.ActualWidth * 3.5
+					$EmailScroll.Content.MinWidth = $TreeView.ActualWidth * 3.5
+
+					if (([datetime]::Now - $Debounce).TotalSeconds -ge 10) {
+						try {
+							Write-Verbose -Message "Changing to $($TreeView.SelectedItem.Title)" -Verbose
+							$NewFolder = 
+							$FolderScroll.Content.Items.Clear()
+							$script:emails = (Get-EWSFolder -Path "MsgFolderRoot\$($TreeView.SelectedItem.Title)").FindItems([int]::MaxValue)
+							$script:emails | Select -ExpandProperty Subject| % {
+								$FolderScroll.Content.Items.Add($_)
+							}
+						} Catch {
+							Write-Verbose -Message 'Unable to look up folder' -Verbose
+						}
+						$Debounce = [Datetime]::Now
+					} else {
+						Write-Verbose 'Debounced' -Verbose
 					}
 				})
+
+				$FolderContents.Add_SelectedItemIndexChanged({
+					Write-Verbose -Verbose -Message "$($EmailScroll.ActualWidth)"
+					$SelectedEmail = $script:emails | Select -First 1 -Skip $FolderContents.SelectedItemIndex
+					
+					$SelectedEmailBody = ((( Get-EWSMessage -id ($SelectedEmail | select -ExpandProperty id) | select -ExpandProperty BodyText ) -replace '<[^>]+>','') -split "`r`n") | %{if($_){wrapText -text $_ -width ($EmailContents.ActualWidth - 5)}else{$_}}
+					$EmailContents.Items.Clear()
+					$SelectedEmailBody | %{
+						$EmailContents.Items.Add($_)
+					}
+
+				})
+
                 $WindowPanel = [ConsoleFramework.Controls.Panel]::new()
                 $WindowPanel.Orientation = [ConsoleFramework.Controls.Orientation]::Horizontal
+				
+				$EmailScroll.Content = $EmailContents
+				$FolderScroll.Content = $FolderContents
 
                 [void]$WindowPanel.XChildren.Add($TreeView)
-                [void]$WindowPanel.XChildren.Add($FolderContents)
+                [void]$WindowPanel.XChildren.Add($FolderScroll)
+				[void]$WindowPanel.XChildren.Add($EmailScroll)
                 $WindowPanel
             )
         }
@@ -119,8 +184,12 @@ function Enter-PoshLookSession {
 	    )
         $WindowHostConfig = @{
             MainMenu = {New-CFMenu -Items $MenuItems -HorizontalAlignment 'Center'}
-            Show = {New-CFWindow @WindowConfig}
+            Show = {
+				New-CFWindow @WindowConfig
+			}
         }
+
+		
     }
     Process{}
     End{
