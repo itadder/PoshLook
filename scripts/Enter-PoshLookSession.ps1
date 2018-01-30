@@ -71,13 +71,10 @@ function Enter-PoshLookSession {
                 $FolderContents = New-CFList @FolderContents
 				$TreeView = New-CFTreeView @TreeConfig
 				$TreeView.Add_PropertyChanged({
-					Write-Verbose "Selected: $(
-						try {$TreeView | Select -ExpandProperty SelectedItem | Select -ExpandProperty Title }
-						catch {
-							"None"
-						}
-					)" -Verbose
-					
+					$FolderContents.Items.Clear()
+					(Get-EWSFolder -Path "MsgFolderRoot\$($TreeView.SelectedItem.Title)").FindItems([int]::MaxValue) | Select -ExpandProperty Subject -First 10 | % {
+						$FolderContents.Items.Add($_)
+					}
 				})
                 $WindowPanel = [ConsoleFramework.Controls.Panel]::new()
                 $WindowPanel.Orientation = [ConsoleFramework.Controls.Orientation]::Horizontal
