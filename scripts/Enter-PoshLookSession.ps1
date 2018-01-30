@@ -19,109 +19,122 @@ function Enter-PoshLookSession {
         [Parameter()]
             [pscredential]$Credential
     )
-    if (-not (Get-EWSService -InformationAction Stop)) {
-        $SelectedParams = $PSBoundParameters
-        Write-Verbose -Message 'Connecting to EWS Service'
-        Connect-EWSService @SelectedParams
-    }
+    Begin{
+        if (-not (Get-EWSService -InformationAction Stop)) {
+            $SelectedParams = $PSBoundParameters
+            Write-Verbose -Message 'Connecting to EWS Service'
+            Connect-EWSService @SelectedParams
+        }
 
-	$AppInstance = [ConsoleFramework.ConsoleApplication]::Instance;
-	$Window = [ConsoleFramework.Controls.Window]::new()
-	$Window.Margin.Left = 2
-	$Window.Margin.Right = 2
-	$Window.Margin.Top = 2
-	$Window.Margin.Bottom = 2
-	$Window.Height = 15
-	$window.Width = 20
-
-	$FolderList = [ConsoleFramework.Controls.ListBox]::new()
-	$FolderList.Name = 'Email Folders'
-
-	$WindowHost = [ConsoleFramework.Controls.WindowsHost]::new();
-	$WindowHost.MainMenu = [ConsoleFramework.Controls.Menu]::new();
-	$WindowHost.MainMenu.HorizontalAlignment = 'Center';
-
-	$MainMenu = @(
-		@{
-			Name = 'File'
-			Title = '_File'
-			Gesture = 'Alt+F'
-			Items = @(
-				@{
-					Name = 'Open'
-					Title = '_Open'
-					#Click = {}
-				},@{
-					Name = 'Exit'
-					Title = 'E_xit'
-					Click = {$AppInstance.Exit()}
+        $TreeConfig = @{
+            Name = 'Email Folders'
+			Margin = @{Top=2;Bottom=2;Left=2;Right=2}
+			HorizontalAlignment = 'Stretch' 
+			VerticalAlignment = 'Top'
+            Items = {
+				$SortFolders = @{
+					Inbox = [int]::MaxValue
+					Archive = [int]::MaxValue - 1
+					Scheduled = [int]::MaxValue - 2
 				}
-			)
 
-		},@{
-			Name = 'Edit'
-			Title = '_Edit'
-			Gesture = 'Alt+E'
-			#Click = {}
-		},@{
-			Name = 'Options'
-			Title = '_Options'
-			Gesture = 'Alt+O'
-			#Click = {}
-		}
-	)
-
-	$MainMenu | %{
-		$ThisMenuItem = [ConsoleFramework.Controls.MenuItem]::new()
-		$ThisMenuItem.Title = $_.Title
-		$ThisMenuItem.Name = $_.Name
-
-		if ($_.Click){
-			$ThisMenuItem.Add_Click($_.Click)
-		}
-		if ($_.Items){
-			$ThisMenuItem.Type = 'Submenu'
-			$_.Items | %{
-				$ThisSubmenuItem = [ConsoleFramework.Controls.MenuItem]::new()
-				$ThisSubmenuItem.Title = $_.Title
-				$ThisSubmenuItem.Name = $_.Name
-				if ($_.Click){
-					$ThisSubmenuItem.Add_Click($_.Click)
-				}
-				$ThisMenuItem.Items.Add($ThisSubmenuItem)
+				[string[]]((Get-EWSFolder -Path MsgFolderRoot).FindFolders([int]::MaxValue) | ?{$_.FolderClass -eq 'IPF.Note'} | Select DisplayName,@{N='Sort';E={$SortFolders[$_.DisplayName]}} | sort Sort -Descending | Select -ExpandProperty DisplayName)
 			}
-		}
+        }
 
-		$WindowHost.MainMenu.Items.Add(
-			$ThisMenuItem
-		)
-	}
+        $FolderContents = @{
+            Name = 'FolderContents'
+            Items = {
+				(Get-EWSFolder -Path "MsgFolderRoot\Inbox").FindItems([int]::MaxValue) | Select -ExpandProperty Subject -First 10
+				@('asdfasdf','asdfasdfasfdasf','q5r42353454')
+			}
+        }
 
+        $WindowConfig = @{
+            Title = 'Poshlook'
+            Name = 'PoshlookWindow'
+            #Height = '60'
+            #Width = '80'
+            HorizontalAlignment = 'Stretch'
+            VerticalAlignment = 'Stretch'
+            Margin = New-Object ConsoleFramework.Core.Thickness -Property @{
+                Top = 2
+                Bottom = 2
+                Left = 2
+                Right = 2
+            }
+            Content = $(
+				
+                $TreeConfig.Items = . $TreeConfig.Items
+				$FolderContents.Items = . $FolderContents.Items
+                #$FolderList = New-CFList @FolderConfig
+                $FolderContents = New-CFList @FolderContents
+				$TreeView = New-CFTreeView @TreeConfig
+				$TreeView.Add_PropertyChanged({
+					Write-Verbose "Selected: $(
+						try {$TreeView | Select -ExpandProperty SelectedItem | Select -ExpandProperty Title }
+						catch {
+							"None"
+						}
+					)" -Verbose
+					
+				})
+                $WindowPanel = [ConsoleFramework.Controls.Panel]::new()
+                $WindowPanel.Orientation = [ConsoleFramework.Controls.Orientation]::Horizontal
 
-	$WindowGrid = [ConsoleFramework.Controls.Grid]::new()
+                [void]$WindowPanel.XChildren.Add($TreeView)
+                [void]$WindowPanel.XChildren.Add($FolderContents)
+                $WindowPanel
+            )
+        }
 
-	(Get-EWSFolder -Path MsgFolderRoot).FindFolders([int]::MaxValue) | ?{$_.FolderClass -eq 'IPF.Note'} | %{
-		$FolderList.Items.Add($_.DisplayName)
-	}
+        [hashtable[]]$MenuItems = @(
+		    @{
+			    Name = 'File'
+			    Title = '_File'
+			    Gesture = 'Alt+F'
+			    Items = [hashtable[]]@(
+				    @{
+					    Name = 'Open'
+					    Title = '_Open'
+					    #Click = {}
+				    },
+                    @{
+					    Name = 'Exit'
+					    Title = 'E_xit'
+					    Click = {$AppInstance.Exit()}
+				    }
+			    )
 
-	$ThisColumn = [ConsoleFramework.Controls.ColumnDefinition]::new()
-	$ThisColumn.MinWidth = 15
-	$ThisColumn.MaxWidth = [int]::MaxValue
+		    },
+            @{
+			    Name = 'Edit'
+			    Title = '_Edit'
+			    Gesture = 'Alt+E'
+			    #Click = {}
+		    },
+            @{
+			    Name = 'Options'
+			    Title = '_Options'
+			    Gesture = 'Alt+O'
+			    #Click = {}
+		    }
+	    )
+        $WindowHostConfig = @{
+            MainMenu = {New-CFMenu -Items $MenuItems -HorizontalAlignment 'Center'}
+            Show = {New-CFWindow @WindowConfig}
+        }
+    }
+    Process{}
+    End{
+        
+        $AppInstance = New-CFInstance
 
-	$($ThisColumn) | %{
-		$WindowGrid.ColumnDefinitions.Add($_);
-	}
+        [string[]]($WindowHostConfig.Keys) | %{
+            $WindowHostConfig[$_] = . $WindowHostConfig[$_]
+        }
+        $WindowHost = New-CFWindowHost @WindowHostConfig
 
-	$ThisRow = [ConsoleFramework.Controls.RowDefinition]::new()
-	$ThisRow.MaxHeight = [int]::MaxValue
-	$ThisRow.MinHeight = 20
-	
-	$WindowGrid.RowDefinitions.Add($ThisRow)
-	$WindowGrid.Controls.Add($FolderList)
-
-	$Window.Content = $WindowGrid;
-	$WindowHost.Show($Window);
-
-
-	cls;$AppInstance.Run($WindowHost);
+	    cls;$AppInstance.Run($WindowHost);
+    }
 }
